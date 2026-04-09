@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python .claude/skills/bmad-init/scripts/bmad_init.py load --project-root \"C:/Users/atila/OneDrive/Documentos/ParoquiaMais\" --all)",
+      "Bash(pip install:*)",
+      "Bash(python .claude/skills/bmad-init/scripts/bmad_init.py load --project-root \"C:/Users/atila/OneDrive/Documentos/ParoquiaMais\" --module bmm --all)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --use-npm)",
+      "Bash(npx create-next-app@latest paroquia-mais --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --use-npm --yes)",
+      "Bash(mv paroquia-mais/* .)",
+      "Bash(mv paroquia-mais/.* .)",
+      "Bash(rmdir paroquia-mais:*)",
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest init --defaults)"
+    ]
+  }
+}

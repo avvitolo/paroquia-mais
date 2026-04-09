@@ -1,0 +1,26 @@
+# PRD COMPLETO — Paróquia+
+
+## Table of Contents
+
+- [PRD COMPLETO — Paróquia+](#table-of-contents)
+  - [1. Nome do Projeto](./1-nome-do-projeto.md)
+  - [2. Visão Geral do Produto](./2-viso-geral-do-produto.md)
+  - [3. Objetivos](./3-objetivos.md)
+    - [Objetivo Principal](./3-objetivos.md#objetivo-principal)
+    - [Objetivos Secundários](./3-objetivos.md#objetivos-secundrios)
+  - [4. Stack Tecnológica](./4-stack-tecnolgica.md)
+    - [Frontend](./4-stack-tecnolgica.md#frontend)
+    - [Backend](./4-stack-tecnolgica.md#backend)
+    - [Pagamentos](./4-stack-tecnolgica.md#pagamentos)
+  - [5. Arquitetura (BMAD)](./5-arquitetura-bmad.md)
+  - [6. Modelo de Dados](./6-modelo-de-dados.md)
+  - [7. Segurança](./7-segurana.md)
+  - [8. Funcionalidades](./8-funcionalidades.md)
+  - [9. Fluxos](./9-fluxos.md)
+    - [Comercial](./9-fluxos.md#comercial)
+    - [Operacional](./9-fluxos.md#operacional)
+  - [10. Regras de Negócio](./10-regras-de-negcio.md)
+  - [11. Requisitos Não Funcionais](./11-requisitos-no-funcionais.md)
+  - [12. Melhorias Estratégicas](./12-melhorias-estratgicas.md)
+  - [13. Fora do Escopo](./13-fora-do-escopo.md)
+  - [14. Indicadores de Sucesso](./14-indicadores-de-sucesso.md)
