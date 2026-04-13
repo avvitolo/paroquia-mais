@@ -20,9 +20,12 @@ export default async function DashboardLayout({
   }
 
   // Busca dados completos do usuário incluindo papel
+  // Se não existir em public.users, redireciona para uma página de setup ao invés de loop
   const user = await getCurrentUser()
   if (!user) {
-    redirect('/login')
+    // Usuário autenticado mas sem registro em public.users
+    // Força logout para reiniciar o fluxo
+    redirect('/auth/signout')
   }
 
   return (

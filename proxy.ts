@@ -65,6 +65,11 @@ export async function proxy(request: NextRequest) {
     return redirectWithSession(url, supabaseResponse)
   }
 
+  // Permite /auth/signout mesmo com sessão ativa (rota de logout forçado)
+  if (pathname === '/auth/signout') {
+    return supabaseResponse
+  }
+
   // Redireciona usuários autenticados que tentam acessar páginas públicas de auth
   const AUTH_PUBLIC_PATHS = ['/login', '/signup', '/forgot-password']
   if ((AUTH_PUBLIC_PATHS.includes(pathname) || pathname === '/') && user) {
