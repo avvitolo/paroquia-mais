@@ -10,7 +10,29 @@
       "Bash(mv paroquia-mais/.* .)",
       "Bash(rmdir paroquia-mais:*)",
       "Bash(npm install:*)",
-      "Bash(npx shadcn@latest init --defaults)"
+      "Bash(npx shadcn@latest init --defaults)",
+      "Bash(npx shadcn@latest add input label card toast --overwrite)",
+      "Bash(npx shadcn@latest add input label card sonner --overwrite)",
+      "Bash(npm run:*)",
+      "Bash(python:*)",
+      "Bash(npx next:*)",
+      "Bash(npx tsc:*)",
+      "Bash(curl:*)",
+      "Bash(npx -y @supabase/mcp-server-supabase@latest --help)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")",
+      "mcp__supabase__list_migrations",
+      "Bash(npx supabase:*)",
+      "Bash(stripe:*)",
+      "Bash(winget install:*)",
+      "Bash(cmd:*)",
+      "Read(//c/Users/atila/AppData/Local/Microsoft/WinGet/Packages//**)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Users/atila/**)",
+      "Bash(/c/Users/atila/AppData/Local/Microsoft/WinGet/Packages/Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe/stripe.exe login:*)",
+      "Bash(jobs -l)",
+      "Bash(/c/Users/atila/AppData/Local/Microsoft/WinGet/Packages/Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe/stripe.exe listen:*)",
+      "Bash(git:*)",
+      "Bash(gh auth:*)"
     ]
   }
 }
