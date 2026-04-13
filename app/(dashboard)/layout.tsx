@@ -9,22 +9,37 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
+  let authUser = null
+  let user = null
 
-  // Primeira camada de proteção (o proxy.ts já redireciona, mas validamos novamente)
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.getUser()
+
+    if (error) {
+      console.error('[DashboardLayout] auth.getUser error:', error.message)
+      redirect('/login')
+    }
+
+    authUser = data.user
+  } catch (e) {
+    console.error('[DashboardLayout] createClient/getUser exception:', e)
+    redirect('/login')
+  }
+
   if (!authUser) {
     redirect('/login')
   }
 
-  // Busca dados completos do usuário incluindo papel
-  // Se não existir em public.users, redireciona para uma página de setup ao invés de loop
-  const user = await getCurrentUser()
+  try {
+    user = await getCurrentUser()
+  } catch (e) {
+    console.error('[DashboardLayout] getCurrentUser exception:', e)
+  }
+
   if (!user) {
-    // Usuário autenticado mas sem registro em public.users
-    // Força logout para reiniciar o fluxo
+    // Usuário autenticado mas sem registro em public.users — estado inconsistente
+    console.error('[DashboardLayout] public.users record not found for auth user:', authUser.id)
     redirect('/auth/signout')
   }
 
