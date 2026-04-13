@@ -1,9 +1,17 @@
-// Página de escalas — implementada na Story 4.1
-export default function SchedulesPage() {
+// Página de escalas — Stories 4.1, 4.2, 4.3
+import { getSchedules } from '@/lib/mcp/schedule.mcp'
+import { getCelebrations } from '@/lib/mcp/celebration.mcp'
+import { ScheduleList } from '@/components/schedules/schedule-list'
+
+export default async function SchedulesPage() {
+  const [schedules, celebrations] = await Promise.all([
+    getSchedules(),
+    getCelebrations(true),
+  ])
+
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-bold">Escalas</h1>
-      <p className="text-muted-foreground">Em construção — Story 4.1</p>
-    </main>
+    <div className="max-w-5xl mx-auto">
+      <ScheduleList schedules={schedules} celebrations={celebrations} />
+    </div>
   )
 }

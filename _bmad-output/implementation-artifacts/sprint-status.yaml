@@ -59,29 +59,29 @@ development_status:
 
   # ─── Epic 2: Parish Configuration ───
   epic-2: in-progress
-  2-1-role-based-access-control: review
-  2-2-pastoral-management: backlog
-  2-3-member-management: backlog
+  2-1-role-based-access-control: done
+  2-2-pastoral-management: done
+  2-3-member-management: done
   2-4-plan-limits-enforcement: deferred  # movida para Epic 6
-  2-5-member-availability-management: backlog
+  2-5-member-availability-management: done
   epic-2-retrospective: optional
 
   # ─── Epic 3: Parish Agenda ───
-  epic-3: backlog
-  3-1-celebration-management: backlog
-  3-2-parish-calendar-view: backlog
+  epic-3: done
+  3-1-celebration-management: done
+  3-2-parish-calendar-view: done
   epic-3-retrospective: optional
 
   # ─── Epic 4: Schedule Management ───
-  epic-4: backlog
-  4-1-schedule-creation-member-assignment: backlog
-  4-2-conflict-validation: backlog
-  4-3-schedule-publication: backlog
+  epic-4: done
+  4-1-schedule-creation-member-assignment: done
+  4-2-conflict-validation: done
+  4-3-schedule-publication: done
   epic-4-retrospective: optional
 
   # ─── Epic 5: Confirmation & Communication ───
-  epic-5: backlog
-  5-1-attendance-confirmation: backlog
+  epic-5: in-progress
+  5-1-attendance-confirmation: done
   5-2-schedule-notifications: backlog
   epic-5-retrospective: optional
 

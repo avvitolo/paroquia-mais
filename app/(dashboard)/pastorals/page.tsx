@@ -1,9 +1,14 @@
-// Página de pastorais — implementada na Story 2.2
-export default function PastoralsPage() {
+// Página de gestão de pastorais — Story 2.2
+// Server Component: busca pastorais e passa para o componente client de CRUD
+import { getPastorals } from '@/lib/mcp/pastoral.mcp'
+import { PastoralCrud } from '@/components/pastorals/pastoral-crud'
+
+export default async function PastoralsPage() {
+  const pastorals = await getPastorals()
+
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-bold">Pastorais</h1>
-      <p className="text-muted-foreground">Em construção — Story 2.2</p>
-    </main>
+    <div className="max-w-5xl mx-auto">
+      <PastoralCrud initialPastorals={pastorals} />
+    </div>
   )
 }

@@ -1,9 +1,13 @@
-// Página de celebrações — implementada na Story 3.1
-export default function CelebrationsPage() {
+// Página de celebrações — Stories 3.1 e 3.2
+import { getCelebrations } from '@/lib/mcp/celebration.mcp'
+import { CelebrationCrud } from '@/components/celebrations/celebration-crud'
+
+export default async function CelebrationsPage() {
+  const celebrations = await getCelebrations(true) // inclui passadas para edição
+
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-bold">Celebrações</h1>
-      <p className="text-muted-foreground">Em construção — Story 3.1</p>
-    </main>
+    <div className="max-w-5xl mx-auto">
+      <CelebrationCrud initialCelebrations={celebrations} />
+    </div>
   )
 }
