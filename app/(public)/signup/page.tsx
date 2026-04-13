@@ -1,6 +1,6 @@
 'use client'
 
-// Página de criação de conta
+// Página de criação de conta — cria paróquia + admin em um único fluxo
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { signUp } from './actions'
 
 export default function SignupPage() {
+  const [parishName, setParishName] = useState('')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -30,7 +31,7 @@ export default function SignupPage() {
 
     startTransition(async () => {
       try {
-        await signUp(fullName, email, password)
+        await signUp(fullName, email, password, parishName)
         setSuccess(true)
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : ''
@@ -42,13 +43,12 @@ export default function SignupPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#002045] to-[#1a365d] flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl p-8">
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center">
           <h1 className="font-heading text-3xl font-bold text-[#002045]">Paróquia+</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Crie sua conta</p>
+          <p className="mt-2 text-sm text-muted-foreground">Cadastre sua paróquia</p>
         </div>
 
         {success ? (
-          /* Estado de sucesso — instrui o usuário a confirmar o email */
           <div className="text-center space-y-3">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
               <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -65,56 +65,73 @@ export default function SignupPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Dados da paróquia */}
             <div className="space-y-2">
-              <Label htmlFor="fullName">Nome completo</Label>
+              <Label htmlFor="parishName">Nome da paróquia</Label>
               <Input
-                id="fullName"
+                id="parishName"
                 type="text"
-                placeholder="João da Silva"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Paróquia São José"
+                value={parishName}
+                onChange={(e) => setParishName(e.target.value)}
                 required
                 disabled={isPending}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isPending}
-              />
-            </div>
+            <div className="border-t pt-4 space-y-4">
+              {/* Dados do administrador */}
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Seu nome completo</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="João da Silva"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  disabled={isPending}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Mínimo 6 caracteres"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isPending}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isPending}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirm">Confirmar senha</Label>
-              <Input
-                id="confirm"
-                type="password"
-                placeholder="Repita a senha"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                required
-                disabled={isPending}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Mínimo 6 caracteres"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isPending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm">Confirmar senha</Label>
+                <Input
+                  id="confirm"
+                  type="password"
+                  placeholder="Repita a senha"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  required
+                  disabled={isPending}
+                />
+              </div>
             </div>
 
             <Button

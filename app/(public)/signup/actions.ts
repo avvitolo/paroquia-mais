@@ -1,23 +1,59 @@
 'use server'
 
 // Server Action para criação de conta com email e senha
+// Cria o auth user, a paróquia e o registro em public.users em uma única operação
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { headers } from 'next/headers'
 
-export async function signUp(fullName: string, email: string, password: string) {
+export async function signUp(
+  fullName: string,
+  email: string,
+  password: string,
+  parishName: string
+) {
   const supabase = await createClient()
   const headersList = await headers()
   const origin = headersList.get('origin') ?? ''
 
-  const { error } = await supabase.auth.signUp({
+  // 1. Cria o usuário no Supabase Auth
+  const { data: authData, error: signUpError } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      // Redireciona para o callback após confirmar o email
       emailRedirectTo: `${origin}/auth/callback`,
       data: { full_name: fullName },
     },
   })
 
-  if (error) throw new Error(error.message)
+  if (signUpError) throw new Error(signUpError.message)
+  if (!authData.user) throw new Error('Falha ao criar usuário')
+
+  // 2. Usa service role para criar paróquia e usuário no banco
+  // (sem aguardar confirmação de email — limpeza de órfãos pode ser feita depois)
+  const admin = createAdminClient()
+
+  const { data: parish, error: parishError } = await admin
+    .from('parishes')
+    .insert({ name: parishName })
+    .select()
+    .single()
+
+  if (parishError) throw new Error('Falha ao criar paróquia: ' + parishError.message)
+
+  // 3. Cria o registro em public.users vinculado à paróquia
+  const { error: userError } = await admin.from('users').insert({
+    id: authData.user.id,
+    parish_id: parish.id,
+    full_name: fullName,
+    email,
+    role: 'admin',
+  })
+
+  if (userError) throw new Error('Falha ao criar usuário no banco: ' + userError.message)
+
+  // 4. Atualiza app_metadata com parish_id e role para que o JWT e as RLS policies funcionem
+  await admin.auth.admin.updateUserById(authData.user.id, {
+    app_metadata: { parish_id: parish.id, role: 'admin' },
+  })
 }

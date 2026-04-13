@@ -58,14 +58,32 @@ Deno.serve(async (req: Request) => {
       return new Response('DB error: subscriptions', { status: 500 })
     }
 
-    // Convida o administrador — envia Magic Link com parish_id e role no app_metadata
-    const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(admin_email, {
-      data: { parish_id: parish.id, role: 'admin' },
+    // Convida o administrador via email
+    // data: define raw_user_meta_data; app_metadata é atualizado separadamente abaixo
+    const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(admin_email, {
+      data: { full_name: admin_email, parish_id: parish.id, role: 'admin' },
     })
 
     if (inviteError) {
       console.error('Erro ao convidar admin:', inviteError.message)
       return new Response('Auth error: invite', { status: 500 })
+    }
+
+    // Atualiza app_metadata com parish_id e role — necessário para RLS e JWT claims
+    // inviteUserByEmail só define user_metadata; app_metadata requer updateUserById
+    if (inviteData.user) {
+      await supabase.auth.admin.updateUserById(inviteData.user.id, {
+        app_metadata: { parish_id: parish.id, role: 'admin' },
+      })
+
+      // Cria o registro em public.users imediatamente (sem aguardar trigger)
+      await supabase.from('users').insert({
+        id: inviteData.user.id,
+        parish_id: parish.id,
+        full_name: admin_email,
+        email: admin_email,
+        role: 'admin',
+      })
     }
   }
 
