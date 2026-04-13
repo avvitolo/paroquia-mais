@@ -65,8 +65,9 @@ export async function proxy(request: NextRequest) {
     return redirectWithSession(url, supabaseResponse)
   }
 
-  // Redireciona usuários autenticados que tentam acessar /login ou a raiz
-  if ((pathname === '/login' || pathname === '/') && user) {
+  // Redireciona usuários autenticados que tentam acessar páginas públicas de auth
+  const AUTH_PUBLIC_PATHS = ['/login', '/signup', '/forgot-password']
+  if ((AUTH_PUBLIC_PATHS.includes(pathname) || pathname === '/') && user) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return redirectWithSession(url, supabaseResponse)

@@ -1,27 +1,37 @@
 'use client'
 
-// Página de login — autenticação com email e senha
+// Página de redefinição de senha — acessada após clicar no link do email
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { signInWithPassword } from './actions'
+import { resetPassword } from './actions'
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('')
+export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [isPending, startTransition] = useTransition()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+
+    if (password !== confirm) {
+      toast.error('As senhas não coincidem.')
+      return
+    }
+    if (password.length < 6) {
+      toast.error('A senha deve ter ao menos 6 caracteres.')
+      return
+    }
+
     startTransition(async () => {
       try {
-        await signInWithPassword(email, password)
+        await resetPassword(password)
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : ''
         if (!message.includes('NEXT_REDIRECT')) {
-          toast.error('Email ou senha incorretos. Tente novamente.')
+          toast.error(message || 'Erro ao redefinir senha. Tente novamente.')
         }
       }
     })
@@ -30,42 +40,33 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#002045] to-[#1a365d] flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl p-8">
-        {/* Cabeçalho */}
         <div className="mb-8 text-center">
           <h1 className="font-heading text-3xl font-bold text-[#002045]">Paróquia+</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Acesse sua paróquia</p>
+          <p className="mt-2 text-sm text-muted-foreground">Definir nova senha</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
+            <Label htmlFor="password">Nova senha</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="seu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="password"
+              type="password"
+              placeholder="Mínimo 6 caracteres"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isPending}
             />
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Senha</Label>
-              <a
-                href="/forgot-password"
-                className="text-xs text-[#002045] hover:underline"
-              >
-                Esqueceu a senha?
-              </a>
-            </div>
+            <Label htmlFor="confirm">Confirmar nova senha</Label>
             <Input
-              id="password"
+              id="confirm"
               type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Repita a senha"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
               required
               disabled={isPending}
             />
@@ -76,16 +77,9 @@ export default function LoginPage() {
             className="w-full bg-[#002045] text-white hover:bg-[#1a365d]"
             disabled={isPending}
           >
-            {isPending ? 'Entrando...' : 'Entrar'}
+            {isPending ? 'Salvando...' : 'Salvar nova senha'}
           </Button>
         </form>
-
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          Não tem conta?{' '}
-          <a href="/signup" className="text-[#002045] font-medium hover:underline">
-            Criar conta
-          </a>
-        </p>
       </div>
     </main>
   )

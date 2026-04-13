@@ -1,13 +1,13 @@
 'use server'
 
-// Server Actions de autenticação — login com email e senha
+// Server Action para definir nova senha após o link de recuperação
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
-export async function signInWithPassword(email: string, password: string) {
+export async function resetPassword(password: string) {
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  const { error } = await supabase.auth.updateUser({ password })
 
   if (error) throw new Error(error.message)
 

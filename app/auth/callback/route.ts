@@ -1,10 +1,12 @@
-// Route Handler para troca do código PKCE por sessão após clique no magic link
+// Route Handler para troca do código PKCE por sessão
+// Usado tanto no login/signup (magic link / email confirm) quanto na recuperação de senha
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  // next define para onde redirecionar após autenticação (padrão: /dashboard)
   const next = searchParams.get('next') ?? '/dashboard'
 
   if (code) {
@@ -16,6 +18,6 @@ export async function GET(request: Request) {
     }
   }
 
-  // Redireciona para login com indicador de erro caso o código seja inválido ou ausente
+  // Código inválido ou ausente — redireciona para login com mensagem de erro
   return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
 }
