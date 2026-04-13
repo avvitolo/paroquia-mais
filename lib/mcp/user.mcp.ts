@@ -1,17 +1,9 @@
-// Camada MCP — acesso ao Supabase para dados do usuário autenticado
+// Camada MCP — acesso ao Supabase para dados do usuário autenticado (server-only)
 // REGRA: nenhum arquivo fora de /lib/mcp pode importar de @/lib/supabase/server diretamente
 import { createClient } from '@/lib/supabase/server'
-
-export type AppRole = 'admin' | 'coordinator' | 'member'
-
-export type AppUser = {
-  id: string
-  parish_id: string
-  full_name: string
-  email: string
-  role: AppRole
-  created_at: string
-}
+export type { AppRole, AppUser } from './user.types'
+export { hasRole } from './user.types'
+import type { AppUser } from './user.types'
 
 // Busca o usuário autenticado com seus dados completos de public.users
 export async function getCurrentUser(): Promise<AppUser | null> {
@@ -31,7 +23,3 @@ export async function getCurrentUser(): Promise<AppUser | null> {
   return data as AppUser
 }
 
-// Verifica se o usuário possui um dos papéis especificados
-export function hasRole(user: AppUser, ...roles: AppRole[]): boolean {
-  return roles.includes(user.role)
-}

@@ -4,7 +4,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from '@/features/auth/actions'
-import { hasRole, type AppUser } from '@/lib/mcp/user.mcp'
+import { hasRole, type AppUser } from '@/lib/mcp/user.types'
 
 // Mapa de rótulos para cada papel
 const ROLE_LABELS: Record<string, string> = {

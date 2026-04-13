@@ -2,8 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   turbopack: {
-    root: 'c:/Users/atila/OneDrive/Documentos/ParoquiaMais'
-  }
+    root: process.cwd(),
+  },
 };
 
 export default nextConfig;

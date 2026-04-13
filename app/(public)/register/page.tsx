@@ -1,7 +1,7 @@
 'use client'
 
 // Página de cadastro da paróquia — integração Stripe (Story 1.3)
-import { useState, useTransition } from 'react'
+import { useState, useTransition, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createCheckoutSession } from './actions'
 
-export default function RegisterPage() {
+// Componente interno separado para isolar o useSearchParams dentro do Suspense
+function RegisterForm() {
   const searchParams = useSearchParams()
   const canceled = searchParams.get('canceled') === 'true'
 
@@ -147,5 +148,14 @@ export default function RegisterPage() {
         </p>
       </div>
     </main>
+  )
+}
+
+// Wrapper com Suspense obrigatório para useSearchParams no Next.js
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   )
 }
