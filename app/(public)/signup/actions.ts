@@ -5,6 +5,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 export async function signUp(
   fullName: string,
@@ -30,7 +31,6 @@ export async function signUp(
   if (!authData.user) throw new Error('Falha ao criar usuário')
 
   // 2. Usa service role para criar paróquia e usuário no banco
-  // (sem aguardar confirmação de email — limpeza de órfãos pode ser feita depois)
   const admin = createAdminClient()
 
   const { data: parish, error: parishError } = await admin
@@ -52,8 +52,16 @@ export async function signUp(
 
   if (userError) throw new Error('Falha ao criar usuário no banco: ' + userError.message)
 
-  // 4. Atualiza app_metadata com parish_id e role para que o JWT e as RLS policies funcionem
+  // 4. Atualiza app_metadata com parish_id e role (necessário para JWT e RLS policies)
   await admin.auth.admin.updateUserById(authData.user.id, {
     app_metadata: { parish_id: parish.id, role: 'admin' },
   })
+
+  // 5. Se a confirmação de email está desabilitada, authData.session já existe —
+  //    redireciona direto para o dashboard sem precisar verificar email
+  if (authData.session) {
+    redirect('/dashboard')
+  }
+
+  // Caso contrário, retorna normalmente e a página mostra "verifique seu email"
 }

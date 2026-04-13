@@ -35,6 +35,8 @@ export default function SignupPage() {
         setSuccess(true)
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : ''
+        // NEXT_REDIRECT não é um erro — é o redirect para /dashboard após cadastro
+        if (message.includes('NEXT_REDIRECT')) return
         toast.error(message || 'Erro ao criar conta. Tente novamente.')
       }
     })
