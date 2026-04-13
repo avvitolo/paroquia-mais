@@ -14,6 +14,16 @@ const PROTECTED_PATHS = [
 // Rotas que exigem papel 'admin' — redirecionam para /dashboard se outro papel tentar acessar
 const ADMIN_ONLY_PATHS = ['/settings']
 
+// Cria resposta de redirect preservando os cookies de sessão do Supabase
+// Sem isso, o browser perde a sessão e entra em loop de redirecionamento
+function redirectWithSession(url: URL, supabaseResponse: NextResponse): NextResponse {
+  const redirect = NextResponse.redirect(url)
+  supabaseResponse.cookies.getAll().forEach(({ name, value }) => {
+    redirect.cookies.set(name, value)
+  })
+  return redirect
+}
+
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -52,14 +62,14 @@ export async function proxy(request: NextRequest) {
   if (isProtected && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url)
+    return redirectWithSession(url, supabaseResponse)
   }
 
-  // Redireciona usuários autenticados que tentam acessar /login
-  if (pathname === '/login' && user) {
+  // Redireciona usuários autenticados que tentam acessar /login ou a raiz
+  if ((pathname === '/login' || pathname === '/') && user) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+    return redirectWithSession(url, supabaseResponse)
   }
 
   // Protege rotas exclusivas de admin — redireciona outros papéis para /dashboard
@@ -72,7 +82,7 @@ export async function proxy(request: NextRequest) {
     if (isAdminOnly && role !== 'admin') {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
+      return redirectWithSession(url, supabaseResponse)
     }
   }
 
