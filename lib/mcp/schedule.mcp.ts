@@ -124,7 +124,7 @@ export async function validateAssignment(
     .single()
 
   if (!schedule) return { conflict: false }
-  const celebDate = (schedule as { celebrations: { date: string } }).celebrations?.date
+  const celebDate = (schedule as unknown as { celebrations: { date: string } }).celebrations?.date
 
   if (!celebDate) return { conflict: false }
 
@@ -137,7 +137,7 @@ export async function validateAssignment(
     .neq('schedule_id', scheduleId)
 
   if (conflictAssignment) {
-    const conflict = (conflictAssignment as { schedules: { celebrations: { date: string; title: string } } }[])
+    const conflict = (conflictAssignment as unknown as { schedules: { celebrations: { date: string; title: string } } }[])
       .find((a) => a.schedules?.celebrations?.date === celebDate)
 
     if (conflict) {
