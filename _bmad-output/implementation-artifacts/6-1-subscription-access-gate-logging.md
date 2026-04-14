@@ -1,6 +1,6 @@
 # Story 6.1: Subscription Access Gate & Logging
 
-Status: review
+Status: done
 
 ## Story
 

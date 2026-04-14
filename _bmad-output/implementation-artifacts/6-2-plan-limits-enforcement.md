@@ -1,6 +1,6 @@
 # Story 6.2: Plan Limits Enforcement
 
-Status: review
+Status: done
 
 ## Story
 

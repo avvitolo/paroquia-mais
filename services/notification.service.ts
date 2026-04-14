@@ -4,9 +4,28 @@ import 'server-only'
 import { Resend } from 'resend'
 import { getScheduleWithAssignments } from '@/lib/mcp/schedule.mcp'
 
+// Item 2 — Validação de RESEND_API_KEY no startup (antes de qualquer envio)
+if (!process.env.RESEND_API_KEY) {
+  console.warn(
+    '[notification] RESEND_API_KEY não configurada — notificações por e-mail desabilitadas. Configure esta variável antes do go-live.'
+  )
+}
+
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+// Item 3 — FROM_EMAIL: avisa se ainda usa o endereço sandbox do Resend
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? 'Paróquia+ <onboarding@resend.dev>'
-const APP_URL = process.env.APP_URL ?? 'http://localhost:3000'
+if (!process.env.RESEND_FROM_EMAIL) {
+  console.warn(
+    '[notification] RESEND_FROM_EMAIL não configurada — usando endereço sandbox. Configure esta variável antes do go-live.'
+  )
+} else if (process.env.RESEND_FROM_EMAIL.includes('onboarding@resend.dev')) {
+  console.warn(
+    '[notification] RESEND_FROM_EMAIL ainda usa o endereço sandbox do Resend (onboarding@resend.dev). Antes do go-live, verifique um domínio no painel do Resend e atualize esta variável.'
+  )
+}
+
+const APP_URL = (process.env.APP_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 // Escapa caracteres HTML para evitar XSS no corpo do e-mail
 function escapeHtml(str: string): string {
@@ -18,12 +37,25 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;')
 }
 
+// Item 4 — Pseudonimiza endereço de e-mail para logs (LGPD)
+// Preserva apenas o domínio: "user@gmail.com" → "***@gmail.com"
+function pseudonymizeEmail(email: string): string {
+  const atIndex = email.indexOf('@')
+  if (atIndex === -1) return '***'
+  return '***' + email.slice(atIndex)
+}
+
 // Envia e-mail de notificação para cada membro escalado quando a escala é publicada.
 // Membros sem e-mail são silenciosamente ignorados.
 // Erros de envio são logados mas não revertem a publicação.
 export async function sendSchedulePublishedNotification(
   scheduleId: string
 ): Promise<void> {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('[sendSchedulePublishedNotification] RESEND_API_KEY ausente — notificações ignoradas.')
+    return
+  }
+
   let scheduleData: Awaited<ReturnType<typeof getScheduleWithAssignments>>
 
   try {
@@ -108,8 +140,12 @@ export async function sendSchedulePublishedNotification(
         html,
       })
     } catch (e) {
-      // Log do erro individual — não interrompe o loop nem reverte a publicação
-      console.error('[sendSchedulePublishedNotification] falha ao enviar e-mail:', e)
+      // Item 4 — Log pseudonimizado (LGPD): não expõe o e-mail completo do membro
+      const safeRecipient = pseudonymizeEmail(memberEmail)
+      const errMsg = e instanceof Error ? e.message : String(e)
+      console.error(
+        `[sendSchedulePublishedNotification] falha ao enviar para ${safeRecipient}: ${errMsg}`
+      )
     }
   }
 }

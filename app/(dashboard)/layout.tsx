@@ -54,7 +54,7 @@ export default async function DashboardLayout({
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar user={user} />
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-6 pt-16 md:pt-6">
           <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
             <AlertTriangle className="h-12 w-12 text-destructive" />
             <h1 className="text-2xl font-bold">Assinatura Suspensa</h1>
@@ -80,7 +80,8 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar user={user} />
-      <main className="flex-1 overflow-auto p-6">{children}</main>
+      {/* pt-16 no mobile para não sobrepor o botão hambúrguer fixo */}
+      <main className="flex-1 overflow-auto p-6 pt-16 md:pt-6">{children}</main>
     </div>
   )
 }

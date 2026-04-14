@@ -42,7 +42,7 @@
 # Nenhuma validação de plano deve ser implementada nas stories intermediárias.
 
 generated: 2026-04-09
-last_updated: 2026-04-14  # epic-6 iniciado — stories 6-1 e 6-2
+last_updated: 2026-04-14  # epic-6 concluído — stories 6-1 e 6-2 done
 project: ParoquiaMais
 project_key: NOKEY
 tracking_system: file-system
@@ -86,7 +86,7 @@ development_status:
   epic-5-retrospective: optional
 
   # ─── Epic 6: Commercial Gates (pós-MVP) ───
-  epic-6: in-progress
-  6-1-subscription-access-gate-logging: review  # era 1-4
-  6-2-plan-limits-enforcement: review                  # era 2-4
+  epic-6: done
+  6-1-subscription-access-gate-logging: done  # era 1-4
+  6-2-plan-limits-enforcement: done           # era 2-4
   epic-6-retrospective: optional
