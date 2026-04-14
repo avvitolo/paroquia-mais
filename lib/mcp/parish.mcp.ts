@@ -42,7 +42,7 @@ export async function getSubscriptionByParishId(
       .eq('parish_id', parishId)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (error) {
       console.error('[checkSubscription] erro ao buscar assinatura:', error.message)

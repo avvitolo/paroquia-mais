@@ -3,7 +3,6 @@
 // Sidebar de navegação do dashboard — filtra links por papel do usuário
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { signOut } from '@/features/auth/actions'
 import { hasRole, type AppUser } from '@/lib/mcp/user.types'
 
 // Mapa de rótulos para cada papel
@@ -75,16 +74,14 @@ export function Sidebar({ user }: SidebarProps) {
         })}
       </nav>
 
-      {/* Botão de logout */}
+      {/* Botão de logout — usa route handler /auth/signout para limpar cookies corretamente */}
       <div className="px-3 py-4 border-t border-white/10">
-        <form action={signOut}>
-          <button
-            type="submit"
-            className="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-white/70 hover:bg-[#1a365d] hover:text-white transition-colors"
-          >
-            Sair
-          </button>
-        </form>
+        <a
+          href="/auth/signout"
+          className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-white/70 hover:bg-[#1a365d] hover:text-white transition-colors"
+        >
+          Sair
+        </a>
       </div>
     </aside>
   )
