@@ -1,27 +1,9 @@
 // Camada MCP — acesso ao Supabase para celebrações (server-only)
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-
-export type Celebration = {
-  id: string
-  parish_id: string
-  title: string
-  date: string
-  time: string
-  type: string
-  notes: string | null
-  created_at: string
-}
-
-export const CELEBRATION_TYPES = [
-  'missa',
-  'novena',
-  'terço',
-  'via-sacra',
-  'adoração',
-  'retiro',
-  'outro',
-] as const
+export type { Celebration } from './celebration.types'
+export { CELEBRATION_TYPES } from './celebration.types'
+import type { Celebration } from './celebration.types'
 
 // Lista celebrações futuras da paróquia em ordem cronológica
 export async function getCelebrations(includeAll = false): Promise<Celebration[]> {

@@ -5,8 +5,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { Celebration } from '@/lib/mcp/celebration.mcp'
-import { CELEBRATION_TYPES } from '@/lib/mcp/celebration.mcp'
+import type { Celebration } from '@/lib/mcp/celebration.types'
+import { CELEBRATION_TYPES } from '@/lib/mcp/celebration.types'
 import {
   createCelebrationAction,
   updateCelebrationAction,
