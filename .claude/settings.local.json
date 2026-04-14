@@ -37,7 +37,10 @@
       "Bash(ls /c/Users/atila/OneDrive/Documentos/ParoquiaMais/app/\\\\\\(dashboard\\\\\\)/subscription*)",
       "Bash(ls:*)",
       "Bash(xargs grep:*)",
-      "Bash(SUPABASE_DB_PASSWORD=\"4UlHiOfiL71l24\" npx supabase:*)"
+      "Bash(SUPABASE_DB_PASSWORD=\"4UlHiOfiL71l24\" npx supabase:*)",
+      "Bash(npx vercel:*)",
+      "Bash(ls .vercel/)",
+      "Bash(cat .vercel/project.json)"
     ]
   }
 }
