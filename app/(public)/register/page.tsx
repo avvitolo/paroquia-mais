@@ -13,10 +13,11 @@ import { createCheckoutSession } from './actions'
 function RegisterForm() {
   const searchParams = useSearchParams()
   const canceled = searchParams.get('canceled') === 'true'
+  const planParam = searchParams.get('plan') === 'pro' ? 'pro' : 'basico'
 
   const [parishName, setParishName] = useState('')
   const [email, setEmail] = useState('')
-  const [plan, setPlan] = useState<'basico' | 'pro'>('basico')
+  const [plan, setPlan] = useState<'basico' | 'pro'>(planParam)
   const [isPending, startTransition] = useTransition()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

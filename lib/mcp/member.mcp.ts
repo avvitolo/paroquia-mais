@@ -83,6 +83,29 @@ export async function updateMember(
   return data as Member
 }
 
+// Conta membros ativos de uma paróquia — usado para enforcement de limites de plano (Story 6.2)
+// Retorna 0 em caso de erro (fail-open: não bloquear criação por falha de contagem)
+export async function countActiveMembers(parishId: string): Promise<number> {
+  try {
+    const admin = createAdminClient()
+    const { count, error } = await admin
+      .from('members')
+      .select('id', { count: 'exact', head: true })
+      .eq('parish_id', parishId)
+      .eq('is_active', true)
+
+    if (error) {
+      console.error('[countActiveMembers] erro:', error.message)
+      return 0
+    }
+
+    return count ?? 0
+  } catch (e) {
+    console.error('[countActiveMembers] exceção:', e)
+    return 0
+  }
+}
+
 // --- Indisponibilidades ---
 
 export async function getAvailabilities(memberId: string): Promise<MemberAvailability[]> {

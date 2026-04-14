@@ -32,7 +32,9 @@
       "Bash(jobs -l)",
       "Bash(/c/Users/atila/AppData/Local/Microsoft/WinGet/Packages/Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe/stripe.exe listen:*)",
       "Bash(git:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(find . -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) ! -path \"*/node_modules/*\" ! -path \"*/.next/*\" ! -path \"*/.nuxt/*\" -exec grep -l \"Resend\\\\|RESEND\" {} \\\\;)",
+      "Bash(ls /c/Users/atila/OneDrive/Documentos/ParoquiaMais/app/\\\\\\(dashboard\\\\\\)/subscription*)"
     ]
   }
 }

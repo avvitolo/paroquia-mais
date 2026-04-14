@@ -7,7 +7,11 @@ import {
   createPastoral,
   updatePastoral,
   deletePastoral,
+  countPastorals,
 } from '@/lib/mcp/pastoral.mcp'
+import { getSubscriptionByParishId } from '@/lib/mcp/parish.mcp'
+import { getPlanLimits } from '@/lib/plan-limits'
+import { logOperation } from '@/lib/logger'
 
 async function requireAdmin() {
   const user = await getCurrentUser()
@@ -24,8 +28,26 @@ export async function createPastoralAction(formData: FormData) {
 
   if (!name) throw new Error('Nome da pastoral é obrigatório.')
 
-  await createPastoral(user.parish_id, name, description)
-  revalidatePath('/pastorals')
+  // Verifica limite de pastorais do plano (Story 6.2) — fail-open se subscription não disponível
+  const subscription = await getSubscriptionByParishId(user.parish_id)
+  const limits = getPlanLimits(subscription?.plan ?? 'pro')
+  if (isFinite(limits.pastorals)) {
+    const count = await countPastorals(user.parish_id)
+    if (count >= limits.pastorals) {
+      throw new Error(
+        `Limite do plano atingido: máximo de ${limits.pastorals} pastorais. Faça upgrade para o plano Pro.`
+      )
+    }
+  }
+
+  try {
+    await createPastoral(user.parish_id, name, description)
+    revalidatePath('/pastorals')
+    logOperation({ operation: 'createPastoral', userId: user.id, parishId: user.parish_id, status: 'success' })
+  } catch (e) {
+    logOperation({ operation: 'createPastoral', userId: user.id, parishId: user.parish_id, status: 'failure', error: e })
+    throw e
+  }
 }
 
 export async function updatePastoralAction(formData: FormData) {

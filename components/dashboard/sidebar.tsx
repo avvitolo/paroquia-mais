@@ -44,7 +44,7 @@ export function Sidebar({ user }: SidebarProps) {
     <aside className="flex h-screen w-56 flex-col bg-[#002045] text-white">
       {/* Cabeçalho com nome da paróquia */}
       <div className="px-5 py-6 border-b border-white/10">
-        <span className="font-headline text-xl font-bold text-white">Paróquia+</span>
+        <span className="font-heading text-xl font-bold text-white">Paróquia+</span>
       </div>
 
       {/* Informações do usuário */}

@@ -64,6 +64,28 @@ export async function updatePastoral(
   return data as Pastoral
 }
 
+// Conta pastorais de uma paróquia — usado para enforcement de limites de plano (Story 6.2)
+// Retorna 0 em caso de erro (fail-open: não bloquear criação por falha de contagem)
+export async function countPastorals(parishId: string): Promise<number> {
+  try {
+    const admin = createAdminClient()
+    const { count, error } = await admin
+      .from('pastorals')
+      .select('id', { count: 'exact', head: true })
+      .eq('parish_id', parishId)
+
+    if (error) {
+      console.error('[countPastorals] erro:', error.message)
+      return 0
+    }
+
+    return count ?? 0
+  } catch (e) {
+    console.error('[countPastorals] exceção:', e)
+    return 0
+  }
+}
+
 // Exclui uma pastoral (verifica parish_id para segurança)
 export async function deletePastoral(id: string, parishId: string): Promise<void> {
   const admin = createAdminClient()

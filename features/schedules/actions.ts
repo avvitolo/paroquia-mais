@@ -10,6 +10,8 @@ import {
   updateAssignmentStatus,
   validateAssignment,
 } from '@/lib/mcp/schedule.mcp'
+import { sendSchedulePublishedNotification } from '@/services/notification.service'
+import { logOperation } from '@/lib/logger'
 
 async function requireAdminOrCoordinator() {
   const user = await getCurrentUser()
@@ -26,8 +28,14 @@ export async function createScheduleAction(formData: FormData) {
 
   if (!celebration_id) throw new Error('Celebração é obrigatória.')
 
-  await createSchedule(user.parish_id, celebration_id, notes)
-  revalidatePath('/schedules')
+  try {
+    await createSchedule(user.parish_id, celebration_id, notes)
+    revalidatePath('/schedules')
+    logOperation({ operation: 'createSchedule', userId: user.id, parishId: user.parish_id, status: 'success' })
+  } catch (e) {
+    logOperation({ operation: 'createSchedule', userId: user.id, parishId: user.parish_id, status: 'failure', error: e })
+    throw e
+  }
 }
 
 export async function addAssignmentAction(formData: FormData) {
@@ -63,9 +71,23 @@ export async function publishScheduleAction(formData: FormData) {
 
   if (!id) throw new Error('ID inválido.')
 
-  await publishSchedule(id, user.parish_id)
-  revalidatePath(`/schedules/${id}`)
-  revalidatePath('/schedules')
+  try {
+    await publishSchedule(id, user.parish_id)
+    revalidatePath(`/schedules/${id}`)
+    revalidatePath('/schedules')
+    logOperation({ operation: 'publishSchedule', userId: user.id, parishId: user.parish_id, status: 'success' })
+  } catch (e) {
+    logOperation({ operation: 'publishSchedule', userId: user.id, parishId: user.parish_id, status: 'failure', error: e })
+    throw e
+  }
+
+  // Envia notificações aos membros escalados (Story 5.2)
+  // Falhas de notificação são logadas mas não revertem a publicação
+  try {
+    await sendSchedulePublishedNotification(id)
+  } catch (e) {
+    console.error('[sendSchedulePublishedNotification] falha ao enviar notificações:', e)
+  }
 }
 
 // Story 5.1 — membro confirma ou recusa sua atribuição

@@ -5,9 +5,13 @@ import { getCurrentUser } from '@/lib/mcp/user.mcp'
 import {
   createMember,
   updateMember,
+  countActiveMembers,
   createAvailability,
   deleteAvailability,
 } from '@/lib/mcp/member.mcp'
+import { getSubscriptionByParishId } from '@/lib/mcp/parish.mcp'
+import { getPlanLimits } from '@/lib/plan-limits'
+import { logOperation } from '@/lib/logger'
 
 async function requireAdminOrCoordinator() {
   const user = await getCurrentUser()
@@ -26,8 +30,26 @@ export async function createMemberAction(formData: FormData) {
 
   if (!full_name) throw new Error('Nome é obrigatório.')
 
-  await createMember(user.parish_id, { full_name, email, phone, pastoral_id })
-  revalidatePath('/members')
+  // Verifica limite de membros do plano (Story 6.2) — fail-open se subscription não disponível
+  const subscription = await getSubscriptionByParishId(user.parish_id)
+  const limits = getPlanLimits(subscription?.plan ?? 'pro')
+  if (isFinite(limits.members)) {
+    const count = await countActiveMembers(user.parish_id)
+    if (count >= limits.members) {
+      throw new Error(
+        `Limite do plano atingido: máximo de ${limits.members} membros. Faça upgrade para o plano Pro.`
+      )
+    }
+  }
+
+  try {
+    await createMember(user.parish_id, { full_name, email, phone, pastoral_id })
+    revalidatePath('/members')
+    logOperation({ operation: 'createMember', userId: user.id, parishId: user.parish_id, status: 'success' })
+  } catch (e) {
+    logOperation({ operation: 'createMember', userId: user.id, parishId: user.parish_id, status: 'failure', error: e })
+    throw e
+  }
 }
 
 export async function updateMemberAction(formData: FormData) {
