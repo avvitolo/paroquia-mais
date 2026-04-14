@@ -34,7 +34,10 @@
       "Bash(git:*)",
       "Bash(gh auth:*)",
       "Bash(find . -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) ! -path \"*/node_modules/*\" ! -path \"*/.next/*\" ! -path \"*/.nuxt/*\" -exec grep -l \"Resend\\\\|RESEND\" {} \\\\;)",
-      "Bash(ls /c/Users/atila/OneDrive/Documentos/ParoquiaMais/app/\\\\\\(dashboard\\\\\\)/subscription*)"
+      "Bash(ls /c/Users/atila/OneDrive/Documentos/ParoquiaMais/app/\\\\\\(dashboard\\\\\\)/subscription*)",
+      "Bash(ls:*)",
+      "Bash(xargs grep:*)",
+      "Bash(SUPABASE_DB_PASSWORD=\"4UlHiOfiL71l24\" npx supabase:*)"
     ]
   }
 }
