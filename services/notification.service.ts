@@ -25,7 +25,12 @@ if (!process.env.RESEND_FROM_EMAIL) {
   )
 }
 
-const APP_URL = (process.env.APP_URL ?? 'http://localhost:3000').replace(/\/$/, '')
+// APP_URL: usa var explícita (Production/Local), VERCEL_URL injetado automaticamente
+// em Preview deployments, ou localhost como último fallback
+const APP_URL = (
+  process.env.APP_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+).replace(/\/$/, '')
 
 // Escapa caracteres HTML para evitar XSS no corpo do e-mail
 function escapeHtml(str: string): string {
