@@ -145,3 +145,26 @@ export async function deleteAvailability(id: string, parishId: string): Promise<
     .eq('parish_id', parishId)
   if (error) throw new Error('Falha ao remover indisponibilidade: ' + error.message)
 }
+
+// Exclui membro permanentemente — apenas se não tiver atribuições históricas
+export async function deleteMember(id: string, parishId: string): Promise<void> {
+  const admin = createAdminClient()
+
+  const { count } = await admin
+    .from('schedule_assignments')
+    .select('id', { count: 'exact', head: true })
+    .eq('member_id', id)
+
+  if (count && count > 0) {
+    throw new Error(
+      `Este membro possui ${count} atribuição(ões) em escalas. Para preservar o histórico, desative o membro em vez de excluir.`
+    )
+  }
+
+  const { error } = await admin
+    .from('members')
+    .delete()
+    .eq('id', id)
+    .eq('parish_id', parishId)
+  if (error) throw new Error('Falha ao excluir membro: ' + error.message)
+}

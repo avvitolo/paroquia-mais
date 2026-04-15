@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/mcp/user.mcp'
 import { getSubscriptionByParishId } from '@/lib/mcp/parish.mcp'
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/dashboard/sidebar'
+import { InactivityGuard } from '@/components/auth/inactivity-guard'
 import { AlertTriangle } from 'lucide-react'
 
 export default async function DashboardLayout({
@@ -82,6 +83,7 @@ export default async function DashboardLayout({
       <Sidebar user={user} />
       {/* pt-16 no mobile para não sobrepor o botão hambúrguer fixo */}
       <main className="flex-1 overflow-auto p-6 pt-16 md:pt-6">{children}</main>
+      <InactivityGuard />
     </div>
   )
 }

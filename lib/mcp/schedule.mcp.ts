@@ -26,6 +26,7 @@ export type ScheduleAssignment = {
   parish_id: string
   member_id: string
   role: string
+  pastoral_role_id: string | null
   status: 'pending' | 'confirmed' | 'declined'
   created_at: string
 }
@@ -78,14 +79,16 @@ export async function getScheduleWithAssignments(id: string): Promise<{
 }
 
 // Escalas publicadas onde o membro autenticado tem atribuição (dashboard do membro)
+// Filtra status=published diretamente no banco para evitar fetch desnecessário
 export async function getMyAssignments(memberId: string): Promise<(AssignmentWithMember & {
   schedules: { status: string; celebrations: { title: string; date: string; time: string } }
 })[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('schedule_assignments')
-    .select('*, members(full_name, email), schedules(status, celebrations(title, date, time))')
+    .select('*, members(full_name, email), schedules!inner(status, celebrations(title, date, time))')
     .eq('member_id', memberId)
+    .eq('schedules.status', 'published')
     .order('created_at', { ascending: false })
 
   if (error) return []
@@ -172,12 +175,20 @@ export async function addAssignment(
   scheduleId: string,
   parishId: string,
   memberId: string,
-  role: string
+  role: string,
+  pastoralRoleId?: string | null
 ): Promise<ScheduleAssignment> {
   const admin = createAdminClient()
   const { data, error } = await admin
     .from('schedule_assignments')
-    .insert({ schedule_id: scheduleId, parish_id: parishId, member_id: memberId, role, status: 'pending' })
+    .insert({
+      schedule_id: scheduleId,
+      parish_id: parishId,
+      member_id: memberId,
+      role,
+      pastoral_role_id: pastoralRoleId || null,
+      status: 'pending',
+    })
     .select()
     .single()
   if (error) throw new Error('Falha ao adicionar atribuição: ' + error.message)

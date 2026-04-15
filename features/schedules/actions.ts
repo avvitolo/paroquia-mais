@@ -43,6 +43,7 @@ export async function addAssignmentAction(formData: FormData) {
   const schedule_id = formData.get('schedule_id') as string
   const member_id = formData.get('member_id') as string
   const role = (formData.get('role') as string)?.trim()
+  const pastoral_role_id = (formData.get('pastoral_role_id') as string) || null
 
   if (!schedule_id || !member_id || !role) throw new Error('Dados inválidos.')
 
@@ -50,7 +51,7 @@ export async function addAssignmentAction(formData: FormData) {
   const { conflict, reason } = await validateAssignment(member_id, schedule_id, user.parish_id)
   if (conflict) throw new Error(reason ?? 'Conflito detectado para este membro.')
 
-  await addAssignment(schedule_id, user.parish_id, member_id, role)
+  await addAssignment(schedule_id, user.parish_id, member_id, role, pastoral_role_id)
   revalidatePath(`/schedules/${schedule_id}`)
 }
 

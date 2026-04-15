@@ -12,10 +12,7 @@ export default async function DashboardPage() {
   const member = await getMemberByUserId(user.id)
   const assignments = member ? await getMyAssignments(member.id) : []
 
-  // Filtra apenas escalas publicadas
-  const publishedAssignments = assignments.filter(
-    (a) => a.schedules?.status === 'published'
-  )
+  // getMyAssignments já filtra status=published no banco (T1 fix)
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -26,8 +23,8 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {publishedAssignments.length > 0 ? (
-        <MemberAssignments assignments={publishedAssignments as Parameters<typeof MemberAssignments>[0]['assignments']} />
+      {assignments.length > 0 ? (
+        <MemberAssignments assignments={assignments as Parameters<typeof MemberAssignments>[0]['assignments']} />
       ) : (
         <div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground text-sm">
           {member

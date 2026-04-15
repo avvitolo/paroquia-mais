@@ -8,6 +8,7 @@ import {
   countActiveMembers,
   createAvailability,
   deleteAvailability,
+  deleteMember,
 } from '@/lib/mcp/member.mcp'
 import { getSubscriptionByParishId } from '@/lib/mcp/parish.mcp'
 import { getPlanLimits } from '@/lib/plan-limits'
@@ -98,5 +99,15 @@ export async function deleteAvailabilityAction(formData: FormData) {
   if (!id) throw new Error('ID inválido.')
 
   await deleteAvailability(id, user.parish_id)
+  revalidatePath('/members')
+}
+
+export async function deleteMemberAction(formData: FormData) {
+  const user = await requireAdminOrCoordinator()
+  const id = formData.get('id') as string
+
+  if (!id) throw new Error('ID inválido.')
+
+  await deleteMember(id, user.parish_id)
   revalidatePath('/members')
 }

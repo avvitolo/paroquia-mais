@@ -13,6 +13,7 @@ import {
   toggleMemberStatusAction,
   createAvailabilityAction,
   deleteAvailabilityAction,
+  deleteMemberAction,
 } from '@/features/members/actions'
 
 interface MemberCrudProps {
@@ -29,6 +30,7 @@ export function MemberCrud({ initialMembers, pastorals, availabilities: initialA
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [showAvailForm, setShowAvailForm] = useState<string | null>(null)
   const [showInactive, setShowInactive] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const visible = members.filter((m) => showInactive || m.is_active)
@@ -108,6 +110,21 @@ export function MemberCrud({ initialMembers, pastorals, availabilities: initialA
         }))
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Erro ao registrar indisponibilidade.')
+      }
+    })
+  }
+
+  function handleDeleteMember(memberId: string) {
+    const formData = new FormData()
+    formData.set('id', memberId)
+    startTransition(async () => {
+      try {
+        await deleteMemberAction(formData)
+        setDeletingId(null)
+        toast.success('Membro excluído permanentemente.')
+        setMembers((prev) => prev.filter((m) => m.id !== memberId))
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Erro ao excluir membro.')
       }
     })
   }
@@ -207,8 +224,21 @@ export function MemberCrud({ initialMembers, pastorals, availabilities: initialA
         <div className="space-y-3">
           {visible.map((member) => (
             <div key={member.id} className={`rounded-xl border bg-card shadow-sm ${!member.is_active ? 'opacity-60' : ''}`}>
-              {/* Linha principal */}
-              {editingId === member.id ? (
+              {/* Confirmação de exclusão permanente */}
+              {deletingId === member.id ? (
+                <div className="p-4 space-y-3">
+                  <p className="text-sm font-medium text-[#002045]">Excluir <strong>{member.full_name}</strong> permanentemente?</p>
+                  <p className="text-xs text-muted-foreground">
+                    Esta ação não pode ser desfeita. Membros com histórico de escalas não podem ser excluídos — use desativar para preservar o histórico.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="destructive" onClick={() => handleDeleteMember(member.id)} disabled={isPending}>
+                      {isPending ? 'Excluindo...' : 'Confirmar exclusão'}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setDeletingId(null)} disabled={isPending}>Cancelar</Button>
+                  </div>
+                </div>
+              ) : editingId === member.id ? (
                 <form action={handleUpdate} className="p-5 space-y-4">
                   <input type="hidden" name="id" value={member.id} />
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -267,6 +297,9 @@ export function MemberCrud({ initialMembers, pastorals, availabilities: initialA
                     </Button>
                     <Button size="sm" variant={member.is_active ? 'destructive' : 'outline'} onClick={() => handleToggleStatus(member)} disabled={isPending}>
                       {member.is_active ? 'Desativar' : 'Reativar'}
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-white border-destructive/40" onClick={() => { setDeletingId(member.id); setEditingId(null); setExpandedId(null) }} disabled={isPending}>
+                      Excluir
                     </Button>
                   </div>
                 </div>
