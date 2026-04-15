@@ -9,6 +9,7 @@ const PROTECTED_PATHS = [
   '/members',
   '/pastorals',
   '/settings',
+  '/subscription',
 ]
 
 // Rotas que exigem papel 'admin' — redirecionam para /dashboard se outro papel tentar acessar
@@ -72,7 +73,7 @@ export async function proxy(request: NextRequest) {
 
   // Redireciona usuários autenticados que tentam acessar páginas de auth
   // Nota: '/' (landing page) NÃO está incluído — usuários autenticados podem ver a landing
-  const AUTH_PUBLIC_PATHS = ['/login', '/signup', '/forgot-password']
+  const AUTH_PUBLIC_PATHS = ['/login', '/signup', '/register', '/forgot-password']
   if (AUTH_PUBLIC_PATHS.includes(pathname) && user) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
