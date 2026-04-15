@@ -105,8 +105,8 @@ function RegisterForm() {
                   disabled={isPending}
                   className="sr-only"
                 />
-                <span className="font-semibold text-[#002045]">Básico</span>
-                <span className="text-xs text-muted-foreground mt-1">Para paróquias menores</span>
+                <span className="font-semibold text-[#002045]">Plano Teste</span>
+                <span className="text-xs text-muted-foreground mt-1">Acesso total ao sistema</span>
               </label>
 
               {/* Plano Pro */}

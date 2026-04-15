@@ -36,7 +36,7 @@ const STATUS_CONFIG = {
 }
 
 const PLAN_LABELS: Record<string, string> = {
-  basico: 'Básico',
+  basico: 'Plano Teste',
   pro: 'Pro',
 }
 
