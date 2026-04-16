@@ -20,17 +20,17 @@ test.describe('Pastorais — CRUD', () => {
 
   // ── TC-021 ───────────────────────────────────────────────────────────
   test('TC-021 [+] Admin cria nova pastoral com sucesso', async ({ page }) => {
-    await page.getByRole('button', { name: /nova pastoral|adicionar/i }).click()
+    await page.getByRole('button', { name: /nova pastoral/i }).click()
     await page.getByLabel(/nome/i).fill('Pastoral da Catequese')
-    await page.getByRole('button', { name: /salvar|criar/i }).click()
+    await page.getByRole('button', { name: /criar pastoral/i }).click()
     await expect(page.getByText('Pastoral da Catequese')).toBeVisible({ timeout: 8_000 })
   })
 
   // ── TC-022 ───────────────────────────────────────────────────────────
   test('TC-022 [-] Criar pastoral com nome vazio é bloqueado', async ({ page }) => {
-    await page.getByRole('button', { name: /nova pastoral|adicionar/i }).click()
-    await page.getByRole('button', { name: /salvar|criar/i }).click()
-    // Formulário não deve fechar — permanece com campo vazio
+    await page.getByRole('button', { name: /nova pastoral/i }).click()
+    await page.getByRole('button', { name: /criar pastoral/i }).click()
+    // HTML5 required — formulário não fecha, campo permanece visível
     await expect(page.getByLabel(/nome/i)).toBeVisible()
   })
 

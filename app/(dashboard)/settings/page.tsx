@@ -1,5 +1,6 @@
 // Página de configurações — perfil do administrador e acesso à assinatura
 import { getCurrentUser } from '@/lib/mcp/user.mcp'
+import { hasRole } from '@/lib/mcp/user.types'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { User, CreditCard, ChevronRight } from 'lucide-react'
@@ -7,6 +8,9 @@ import { User, CreditCard, ChevronRight } from 'lucide-react'
 export default async function SettingsPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login')
+  if (!hasRole(user, 'admin_sistema', 'admin_paroquial', 'paroco', 'secretario')) {
+    redirect('/dashboard')
+  }
 
   const ROLE_LABELS: Record<string, string> = {
     admin_sistema:   'Admin Sistema',

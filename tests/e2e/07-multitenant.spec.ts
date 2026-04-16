@@ -3,8 +3,7 @@
  * Garante que usuário de uma paróquia nunca vê dados de outra.
  */
 import { test, expect } from '@playwright/test'
-import { loginAs, logout, loadTestEnv } from './helpers/auth'
-import { adminClient } from './helpers/supabase-admin'
+import { loginAs, loadTestEnv } from './helpers/auth'
 
 test.describe('Multi-tenant — Isolamento de dados', () => {
   // ── TC-060 ───────────────────────────────────────────────────────────
@@ -17,7 +16,7 @@ test.describe('Multi-tenant — Isolamento de dados', () => {
     await expect(page.getByText(env.member1.name)).not.toBeVisible({ timeout: 5_000 })
   })
 
-  // ── TC-061 ──────────────────────��───────────────────────────��────────
+  // ── TC-061 ───────────────────────────────────────────────────────────
   test('TC-061 [sec] Admin da paróquia B não vê pastorais da paróquia A na UI', async ({ page }) => {
     const env = loadTestEnv()
     await loginAs(page, env.adminUser2.email, env.adminUser2.password)
@@ -25,7 +24,7 @@ test.describe('Multi-tenant — Isolamento de dados', () => {
     await expect(page.getByText(env.pastoral1.name)).not.toBeVisible({ timeout: 5_000 })
   })
 
-  // ── TC-062 ─────────────────────���─────────────────────────��───────────
+  // ── TC-062 ───────────────────────────────────────────────────────────
   test('TC-062 [sec] API: consulta de membro com ID de outra paróquia não retorna dados', async ({ page }) => {
     const env = loadTestEnv()
     // Login como admin da paróquia B
@@ -99,7 +98,7 @@ test.describe('Multi-tenant — Isolamento de dados', () => {
     expect(body).toHaveLength(0)
   })
 
-  // ── TC-064 ─────────────────────────────────���─────────────────────────
+  // ── TC-064 ───────────────────────────────────────────────────────────
   test('TC-064 [sec] Manipulação de URL com ID de outra paróquia não expõe dados', async ({ page }) => {
     const env = loadTestEnv()
     await loginAs(page, env.adminUser2.email, env.adminUser2.password)

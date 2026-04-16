@@ -1,0 +1,46 @@
+{
+  "parish1": {
+    "id": "344f4df2-8cf9-4fbf-817b-48ded5728db6",
+    "name": "Paróquia Teste Alpha"
+  },
+  "parish2": {
+    "id": "9a275ce7-c417-4fd7-adce-bd35353b8eea",
+    "name": "Paróquia Teste Beta"
+  },
+  "adminUser": {
+    "id": "b3c9fdaf-2344-42be-9c61-96c5ad0d7ab0",
+    "email": "admin@paroquia-test.dev",
+    "password": "Teste@1234",
+    "role": "admin_sistema",
+    "parishId": "344f4df2-8cf9-4fbf-817b-48ded5728db6"
+  },
+  "coordUser": {
+    "id": "a082a112-ee1a-45c2-b0ec-e95beb7b63f3",
+    "email": "coord@paroquia-test.dev",
+    "password": "Teste@1234",
+    "role": "coordenador",
+    "parishId": "344f4df2-8cf9-4fbf-817b-48ded5728db6"
+  },
+  "memberUser": {
+    "id": "42f911b5-0ecc-48b6-bc5e-55551f33be15",
+    "email": "membro@paroquia-test.dev",
+    "password": "Teste@1234",
+    "role": "membro",
+    "parishId": "344f4df2-8cf9-4fbf-817b-48ded5728db6"
+  },
+  "adminUser2": {
+    "id": "e2902558-5dbc-4f6b-8bdf-61585cb9d38e",
+    "email": "admin@paroquia-beta-test.dev",
+    "password": "Teste@1234",
+    "role": "admin_sistema",
+    "parishId": "9a275ce7-c417-4fd7-adce-bd35353b8eea"
+  },
+  "pastoral1": {
+    "id": "c3b58a81-9319-4064-94fa-48ac3ffc01dd",
+    "name": "Pastoral da Liturgia"
+  },
+  "member1": {
+    "id": "d0c522d9-2473-4241-87db-0b2a04399e08",
+    "name": "João Acólito"
+  }
+}

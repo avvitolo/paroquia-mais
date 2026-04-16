@@ -10,7 +10,7 @@ import {
 
 async function requireAdminOrCoordinator() {
   const user = await getCurrentUser()
-  if (!user || !['admin', 'coordinator'].includes(user.role)) {
+  if (!user || !(['admin_sistema', 'admin_paroquial', 'paroco', 'secretario', 'coordenador'] as string[]).includes(user.role)) {
     throw new Error('Acesso negado.')
   }
   return user

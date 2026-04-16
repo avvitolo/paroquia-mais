@@ -1,9 +1,17 @@
 // Página de gestão de membros — Stories 2.3 e 2.5
+import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/mcp/user.mcp'
+import { hasRole } from '@/lib/mcp/user.types'
 import { getMembers, getAvailabilities } from '@/lib/mcp/member.mcp'
 import { getPastorals } from '@/lib/mcp/pastoral.mcp'
 import { MemberCrud } from '@/components/members/member-crud'
 
 export default async function MembersPage() {
+  const user = await getCurrentUser()
+  if (!user || !hasRole(user, 'admin_sistema', 'admin_paroquial', 'paroco', 'secretario', 'coordenador')) {
+    redirect('/dashboard')
+  }
+
   const [members, pastorals] = await Promise.all([
     getMembers(),
     getPastorals(),

@@ -19,7 +19,7 @@ test.describe('Segurança — Acesso Não Autorizado', () => {
   })
 
   // ── TC-071 ───────────────────────────────────────────────────────────
-  test('TC-071 [sec] API retorna 401 sem token de autenticação', async ({ page }) => {
+  test('TC-071 [sec] API retorna dados vazios sem token de autenticação', async ({ page }) => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const anonKey     = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
@@ -29,7 +29,7 @@ test.describe('Segurança — Acesso Não Autorizado', () => {
       { headers: { apikey: anonKey } }
     )
     const body = await res.json()
-    // RLS sem autenticação deve retornar array vazio (não 401, mas dados protegidos)
+    // RLS sem autenticação deve retornar array vazio (dados protegidos)
     expect(Array.isArray(body)).toBeTruthy()
     expect(body).toHaveLength(0)
   })
@@ -71,8 +71,7 @@ test.describe('Segurança — Acesso Não Autorizado', () => {
   })
 
   // ── TC-073 ───────────────────────────────────────────────────────────
-  test('TC-073 [sec] Tentativa de SQL injection no campo de nome é sanitizada', async ({ page }) => {
-    const env = loadTestEnv()
+  test('TC-073 [sec] Tentativa de SQL injection no campo de email é sanitizada', async ({ page }) => {
     await page.goto('/login')
     await page.getByLabel('E-mail').fill(`'; DROP TABLE users; --`)
     await page.getByLabel('Senha').fill('qualquer')
@@ -80,20 +79,20 @@ test.describe('Segurança — Acesso Não Autorizado', () => {
     // Sistema deve continuar respondendo — sem crash ou 500
     await expect(page.locator('body')).toBeVisible({ timeout: 8_000 })
     // Ainda está na página de login ou mostra erro — nunca em estado quebrado
-    const url = page.url()
-    expect(url).toMatch(/\/login/)
+    expect(page.url()).toMatch(/\/login/)
   })
 
   // ── TC-074 ───────────────────────────────────────────────────────────
   test('TC-074 [sec] XSS básico em campo de texto não executa script', async ({ page }) => {
-    const env = loadTestEnv()
+    // Registra listener de dialog ANTES da ação
+    let dialogFired = false
+    page.on('dialog', () => { dialogFired = true })
+
     await page.goto('/login')
     await page.getByLabel('E-mail').fill('<script>alert("xss")</script>@test.com')
     await page.getByLabel('Senha').fill('senha123')
     await page.getByRole('button', { name: /entrar/i }).click()
     // Dialog alert não deve aparecer
-    let dialogFired = false
-    page.on('dialog', () => { dialogFired = true })
     await page.waitForTimeout(2000)
     expect(dialogFired).toBeFalsy()
   })

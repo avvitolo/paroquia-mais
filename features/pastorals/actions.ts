@@ -15,7 +15,7 @@ import { logOperation } from '@/lib/logger'
 
 async function requireAdmin() {
   const user = await getCurrentUser()
-  if (!user || user.role !== 'admin') {
+  if (!user || !(['admin_sistema', 'admin_paroquial', 'paroco', 'secretario'] as string[]).includes(user.role)) {
     throw new Error('Acesso negado: apenas administradores podem gerenciar pastorais.')
   }
   return user

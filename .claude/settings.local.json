@@ -59,7 +59,11 @@
       "Bash(./node_modules/.bin/next build *)",
       "Bash(SUPABASE_DB_PASSWORD=\"3qBSSy61Fg7U6gJ0\" npx supabase db push)",
       "Bash(SUPABASE_DB_PASSWORD=\"OxC12cRAqLABnvTW\" npx supabase db push)",
-      "Bash(dotenv -e .env.local -- npx supabase db execute --file /dev/stdin)"
+      "Bash(dotenv -e .env.local -- npx supabase db execute --file /dev/stdin)",
+      "Bash(PLAYWRIGHT_BASE_URL=https://paroquia-mais.vercel.app dotenv -e .env.local -- playwright test)",
+      "Bash(PLAYWRIGHT_BASE_URL=https://paroquia-mais.vercel.app npx dotenv -e .env.local -- npx playwright test)",
+      "Bash(PLAYWRIGHT_BASE_URL=https://paroquia-mais.vercel.app npx playwright test --reporter=list)",
+      "Bash(xargs head *)"
     ]
   }
 }

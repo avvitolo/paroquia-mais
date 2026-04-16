@@ -1,4 +1,7 @@
 // Página de celebrações — Stories 3.1, 3.2 + S4 (requisitos de função)
+import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/mcp/user.mcp'
+import { hasRole } from '@/lib/mcp/user.types'
 import { getCelebrations } from '@/lib/mcp/celebration.mcp'
 import { getPastorals } from '@/lib/mcp/pastoral.mcp'
 import { getAllPastoralRoles } from '@/lib/mcp/pastoral-role.mcp'
@@ -6,6 +9,11 @@ import { getCelebrationRequirements } from '@/lib/mcp/celebration-requirement.mc
 import { CelebrationCrud } from '@/components/celebrations/celebration-crud'
 
 export default async function CelebrationsPage() {
+  const user = await getCurrentUser()
+  if (!user || !hasRole(user, 'admin_sistema', 'admin_paroquial', 'paroco', 'secretario', 'coordenador')) {
+    redirect('/dashboard')
+  }
+
   const [celebrations, pastorals, allRolesFlat] = await Promise.all([
     getCelebrations(true),
     getPastorals(),

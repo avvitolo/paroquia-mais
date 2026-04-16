@@ -42,6 +42,7 @@ test.describe('RBAC — Controle de Acesso por Papel', () => {
     await expect(nav.getByRole('link', { name: 'Escalas' })).toBeVisible()
     await expect(nav.getByRole('link', { name: 'Pastorais' })).not.toBeVisible()
     await expect(nav.getByRole('link', { name: 'Membros' })).not.toBeVisible()
+    await expect(nav.getByRole('link', { name: 'Celebrações' })).not.toBeVisible()
     await expect(nav.getByRole('link', { name: 'Configurações' })).not.toBeVisible()
   })
 
@@ -50,7 +51,7 @@ test.describe('RBAC — Controle de Acesso por Papel', () => {
     const env = loadTestEnv()
     await loginAs(page, env.coordUser.email, env.coordUser.password)
     await page.goto('/pastorals')
-    // Deve redirecionar para dashboard (requireRole guard)
+    // Deve redirecionar para dashboard (requireRole guard na page)
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 8_000 })
   })
 

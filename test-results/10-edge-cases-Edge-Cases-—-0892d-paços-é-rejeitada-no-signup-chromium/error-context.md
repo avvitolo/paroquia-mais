@@ -1,0 +1,241 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: 10-edge-cases.spec.ts >> Edge Cases — Entradas Extremas e Limites >> TC-107 [edge] Senha com apenas espaços é rejeitada no signup
+- Location: tests\e2e\10-edge-cases.spec.ts:127:7
+
+# Error details
+
+```
+Error: expect(received).toBeTruthy()
+
+Received: false
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - heading "Paróquia+" [level=1] [ref=e5]
+        - paragraph [ref=e6]: Cadastre sua paróquia
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: Nome da paróquia
+          - textbox "Nome da paróquia" [active] [ref=e10]:
+            - /placeholder: Paróquia São José
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - generic [ref=e13]: Seu nome completo
+            - textbox "Seu nome completo" [ref=e14]:
+              - /placeholder: João da Silva
+          - generic [ref=e15]:
+            - generic [ref=e16]: E-mail
+            - textbox "E-mail" [ref=e17]:
+              - /placeholder: seu@email.com
+              - text: testedge@test.dev
+          - generic [ref=e18]:
+            - generic [ref=e19]: Senha
+            - textbox "Senha" [ref=e20]:
+              - /placeholder: Mínimo 6 caracteres
+          - generic [ref=e21]:
+            - generic [ref=e22]: Confirmar senha
+            - textbox "Confirmar senha" [ref=e23]:
+              - /placeholder: Repita a senha
+        - button "Criar conta" [ref=e24]
+      - paragraph [ref=e25]:
+        - text: Já tem conta?
+        - link "Entrar" [ref=e26] [cursor=pointer]:
+          - /url: /login
+  - region "Notifications alt+T"
+  - alert [ref=e27]
+```
+
+# Test source
+
+```ts
+  39  |   })
+  40  | 
+  41  |   // ── TC-102 ───────────────────────────────────────────────────────────
+  42  |   test('TC-102 [edge] Dois membros com o mesmo nome são permitidos (sem unicidade forçada)', async ({ page }) => {
+  43  |     const env = loadTestEnv()
+  44  |     await loginAs(page, env.adminUser.email, env.adminUser.password)
+  45  |     await page.goto('/members')
+  46  |     const dupName = 'João Silva Duplicado'
+  47  |     // Cria primeiro
+  48  |     await page.getByRole('button', { name: /novo membro|adicionar/i }).click()
+  49  |     await page.getByLabel(/nome/i).fill(dupName)
+  50  |     await page.getByRole('button', { name: /salvar|criar/i }).click()
+  51  |     await expect(page.getByText(dupName)).toBeVisible({ timeout: 8_000 })
+  52  |     // Cria segundo com mesmo nome
+  53  |     await page.getByRole('button', { name: /novo membro|adicionar/i }).click()
+  54  |     await page.getByLabel(/nome/i).fill(dupName)
+  55  |     await page.getByRole('button', { name: /salvar|criar/i }).click()
+  56  |     // Dois registros devem coexistir (nome não é chave única)
+  57  |     const count = await page.getByText(dupName).count()
+  58  |     expect(count).toBeGreaterThanOrEqual(2)
+  59  |   })
+  60  | 
+  61  |   // ── TC-103 ───────────────────────────────────────────────────────────
+  62  |   test('TC-103 [edge] Pastoral com nome de 200 caracteres é tratada sem crash', async ({ page }) => {
+  63  |     const env = loadTestEnv()
+  64  |     await loginAs(page, env.adminUser.email, env.adminUser.password)
+  65  |     await page.goto('/pastorals')
+  66  |     await page.getByRole('button', { name: /nova pastoral|adicionar/i }).click()
+  67  |     const longName = 'P'.repeat(200)
+  68  |     await page.getByLabel(/nome/i).fill(longName)
+  69  |     await page.getByRole('button', { name: /salvar|criar/i }).click()
+  70  |     const hasError = await page.getByText(/muito longo|máximo|caracteres/i)
+  71  |       .isVisible({ timeout: 3_000 }).catch(() => false)
+  72  |     const hasSaved = await page.getByText(longName.slice(0, 30)).isVisible({ timeout: 5_000 }).catch(() => false)
+  73  |     expect(hasError || hasSaved).toBeTruthy()
+  74  |   })
+  75  | 
+  76  |   // ── TC-104 ───────────────────────────────────────────────────────────
+  77  |   test('TC-104 [edge] Email com formato inválido é rejeitado no formulário', async ({ page }) => {
+  78  |     await page.goto('/login')
+  79  |     await page.getByLabel('E-mail').fill('nao-e-um-email')
+  80  |     await page.getByLabel('Senha').fill('qualquer123')
+  81  |     await page.getByRole('button', { name: /entrar/i }).click()
+  82  |     // Browser native validation ou app validation deve rejeitar
+  83  |     const emailField = page.getByLabel('E-mail')
+  84  |     const validityState = await emailField.evaluate((el: HTMLInputElement) => el.validity.valid)
+  85  |     const hasError = await page.getByText(/e-mail inválido|formato|valid email/i)
+  86  |       .isVisible({ timeout: 3_000 }).catch(() => false)
+  87  |     expect(!validityState || hasError).toBeTruthy()
+  88  |   })
+  89  | 
+  90  |   // ── TC-105 ───────────────────────────────────────────────────────────
+  91  |   test('TC-105 [edge] Múltiplas pastorais criadas sequencialmente sem erro', async ({ page }) => {
+  92  |     const env = loadTestEnv()
+  93  |     await loginAs(page, env.adminUser.email, env.adminUser.password)
+  94  |     await page.goto('/pastorals')
+  95  |     // Cria 3 pastorais em sequência
+  96  |     const names = ['Pastoral Alpha', 'Pastoral Beta', 'Pastoral Gamma']
+  97  |     for (const name of names) {
+  98  |       await page.getByRole('button', { name: /nova pastoral|adicionar/i }).click()
+  99  |       await page.getByLabel(/nome/i).fill(name)
+  100 |       await page.getByRole('button', { name: /salvar|criar/i }).click()
+  101 |       await expect(page.getByText(name)).toBeVisible({ timeout: 8_000 })
+  102 |     }
+  103 |     // Todas as 3 devem estar visíveis
+  104 |     for (const name of names) {
+  105 |       await expect(page.getByText(name)).toBeVisible()
+  106 |     }
+  107 |   })
+  108 | 
+  109 |   // ── TC-106 ───────────────────────────────────────────────────────────
+  110 |   test('TC-106 [edge] Título de celebração com emojis não quebra a UI', async ({ page }) => {
+  111 |     const env = loadTestEnv()
+  112 |     await loginAs(page, env.adminUser.email, env.adminUser.password)
+  113 |     await page.goto('/celebrations')
+  114 |     await page.getByRole('button', { name: /nova celebração|adicionar/i }).click()
+  115 |     const emojiTitle = '🎉 Festa Paroquial 🙏'
+  116 |     await page.getByLabel(/título/i).fill(emojiTitle)
+  117 |     const dateInput = page.getByLabel(/data/i).or(page.locator('input[type="date"]').first())
+  118 |     await dateInput.fill('2026-08-01')
+  119 |     const timeInput = page.getByLabel(/horário|hora/i).or(page.locator('input[type="time"]').first())
+  120 |     await timeInput.fill('20:00')
+  121 |     await page.getByRole('button', { name: /salvar|criar/i }).click()
+  122 |     // Sem crash; aceita ou mostra erro de validação claro
+  123 |     await expect(page.locator('body')).toBeVisible({ timeout: 5_000 })
+  124 |   })
+  125 | 
+  126 |   // ── TC-107 ───────────────────────────────────────────────────────────
+  127 |   test('TC-107 [edge] Senha com apenas espaços é rejeitada no signup', async ({ page }) => {
+  128 |     await page.goto('/signup')
+  129 |     const emailField = page.getByLabel(/e-mail/i)
+  130 |     if (await emailField.isVisible({ timeout: 3_000 }).catch(() => false)) {
+  131 |       await emailField.fill('testedge@test.dev')
+  132 |       const pwdField = page.getByLabel(/^senha$/i).first()
+  133 |       if (await pwdField.isVisible({ timeout: 2_000 }).catch(() => false)) {
+  134 |         await pwdField.fill('     ')
+  135 |         await page.getByRole('button', { name: /cadastrar|criar|avançar/i }).click()
+  136 |         // Deve rejeitar senha fraca/inválida
+  137 |         const hasError = await page.getByText(/senha|password|fraca|inválid/i)
+  138 |           .isVisible({ timeout: 5_000 }).catch(() => false)
+> 139 |         expect(hasError).toBeTruthy()
+      |                          ^ Error: expect(received).toBeTruthy()
+  140 |       } else {
+  141 |         test.skip(true, 'Campo senha não encontrado no fluxo')
+  142 |       }
+  143 |     } else {
+  144 |       test.skip(true, 'Página de signup não tem campos de email/senha visíveis')
+  145 |     }
+  146 |   })
+  147 | })
+  148 | 
+  149 | test.describe('Performance Básica — Tempos de Resposta', () => {
+  150 |   // ── TC-110 ───────────────────────────────────────────────────────────
+  151 |   test('TC-110 [perf] Dashboard carrega em menos de 5 segundos', async ({ page }) => {
+  152 |     const env = loadTestEnv()
+  153 |     await loginAs(page, env.adminUser.email, env.adminUser.password)
+  154 |     const start = Date.now()
+  155 |     await page.goto('/dashboard')
+  156 |     await expect(page.locator('main')).toBeVisible({ timeout: 5_000 })
+  157 |     const elapsed = Date.now() - start
+  158 |     expect(elapsed).toBeLessThan(5_000)
+  159 |   })
+  160 | 
+  161 |   // ── TC-111 ───────────────────────────────────────────────────────────
+  162 |   test('TC-111 [perf] Lista de membros carrega em menos de 5 segundos', async ({ page }) => {
+  163 |     const env = loadTestEnv()
+  164 |     await loginAs(page, env.adminUser.email, env.adminUser.password)
+  165 |     const start = Date.now()
+  166 |     await page.goto('/members')
+  167 |     await expect(page.locator('main')).toBeVisible({ timeout: 5_000 })
+  168 |     const elapsed = Date.now() - start
+  169 |     expect(elapsed).toBeLessThan(5_000)
+  170 |   })
+  171 | 
+  172 |   // ── TC-112 ───────────────────────────────────────────────────────────
+  173 |   test('TC-112 [perf] Página de celebrações carrega em menos de 5 segundos', async ({ page }) => {
+  174 |     const env = loadTestEnv()
+  175 |     await loginAs(page, env.adminUser.email, env.adminUser.password)
+  176 |     const start = Date.now()
+  177 |     await page.goto('/celebrations')
+  178 |     await expect(page.locator('main')).toBeVisible({ timeout: 5_000 })
+  179 |     const elapsed = Date.now() - start
+  180 |     expect(elapsed).toBeLessThan(5_000)
+  181 |   })
+  182 | 
+  183 |   // ── TC-113 ───────────────────────────────────────────────────────────
+  184 |   test('TC-113 [perf] Criação de 5 membros em sequência termina sem timeout', async ({ page }) => {
+  185 |     const env = loadTestEnv()
+  186 |     await loginAs(page, env.adminUser.email, env.adminUser.password)
+  187 |     await page.goto('/members')
+  188 |     const start = Date.now()
+  189 |     for (let i = 1; i <= 5; i++) {
+  190 |       await page.getByRole('button', { name: /novo membro|adicionar/i }).click()
+  191 |       await page.getByLabel(/nome/i).fill(`Membro Perf ${i}`)
+  192 |       await page.getByRole('button', { name: /salvar|criar/i }).click()
+  193 |       await expect(page.getByText(`Membro Perf ${i}`)).toBeVisible({ timeout: 8_000 })
+  194 |     }
+  195 |     const total = Date.now() - start
+  196 |     // 5 inserções em menos de 30 segundos
+  197 |     expect(total).toBeLessThan(30_000)
+  198 |   })
+  199 | 
+  200 |   // ── TC-114 ───────────────────────────────────────────────────────────
+  201 |   test('TC-114 [perf] Navegação entre seções principais é fluida (< 3s por transição)', async ({ page }) => {
+  202 |     const env = loadTestEnv()
+  203 |     await loginAs(page, env.adminUser.email, env.adminUser.password)
+  204 |     const sections = ['/members', '/pastorals', '/celebrations', '/schedules', '/settings']
+  205 |     for (const section of sections) {
+  206 |       const start = Date.now()
+  207 |       await page.goto(section)
+  208 |       await expect(page.locator('main')).toBeVisible({ timeout: 5_000 })
+  209 |       const elapsed = Date.now() - start
+  210 |       expect(elapsed).toBeLessThan(5_000)
+  211 |     }
+  212 |   })
+  213 | })
+  214 | 
+```
