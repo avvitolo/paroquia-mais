@@ -7,7 +7,7 @@ export type CelebrationRequirement = {
   parish_id: string
   celebration_id: string
   pastoral_id: string
-  pastoral_role_id: string
+  pastoral_role_id: string | null // nullable: pastoral pode ser adicionada sem função específica
   quantity: number
   created_at: string
 }
@@ -15,7 +15,7 @@ export type CelebrationRequirement = {
 // Inclui dados de pastoral e função para exibição
 export type CelebrationRequirementWithDetails = CelebrationRequirement & {
   pastorals: { name: string }
-  pastoral_roles: { name: string }
+  pastoral_roles: { name: string } | null
 }
 
 // Lista requisitos de uma celebração com detalhes de pastoral e função
@@ -40,13 +40,19 @@ export async function createCelebrationRequirement(
   parishId: string,
   celebrationId: string,
   pastoralId: string,
-  pastoralRoleId: string,
+  pastoralRoleId: string | null,
   quantity: number
 ): Promise<CelebrationRequirement> {
   const admin = createAdminClient()
   const { data, error } = await admin
     .from('celebration_requirements')
-    .insert({ parish_id: parishId, celebration_id: celebrationId, pastoral_id: pastoralId, pastoral_role_id: pastoralRoleId, quantity })
+    .insert({
+      parish_id: parishId,
+      celebration_id: celebrationId,
+      pastoral_id: pastoralId,
+      pastoral_role_id: pastoralRoleId || null,
+      quantity,
+    })
     .select()
     .single()
   if (error) throw new Error('Falha ao criar requisito: ' + error.message)

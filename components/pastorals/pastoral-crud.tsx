@@ -1,6 +1,6 @@
 'use client'
 
-// Componente client para CRUD de pastorais + funções (pastoral_roles) — S3
+// Componente client para CRUD de pastorais + funções + coordenador
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { Pastoral } from '@/lib/mcp/pastoral.mcp'
 import type { PastoralRole } from '@/lib/mcp/pastoral-role.mcp'
+import type { Member } from '@/lib/mcp/member.mcp'
 import {
   createPastoralAction,
   updatePastoralAction,
@@ -21,9 +22,84 @@ import {
 interface PastoralCrudProps {
   initialPastorals: Pastoral[]
   initialRoles: Record<string, PastoralRole[]>
+  members: Member[]
 }
 
-export function PastoralCrud({ initialPastorals, initialRoles }: PastoralCrudProps) {
+// Seletor de coordenador com busca por nome
+function CoordinatorSelect({
+  members,
+  value,
+  onChange,
+  disabled,
+}: {
+  members: Member[]
+  value: string
+  onChange: (v: string) => void
+  disabled?: boolean
+}) {
+  const [search, setSearch] = useState('')
+  const filtered = search
+    ? members.filter((m) => m.full_name.toLowerCase().includes(search.toLowerCase()))
+    : members
+
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor="coordinator-search">Coordenador</Label>
+      <div className="flex gap-2">
+        <div className="flex-1 space-y-1">
+          <Input
+            id="coordinator-search"
+            placeholder="Buscar membro..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            disabled={disabled}
+            className="h-8 text-sm"
+          />
+          {search && filtered.length > 0 && (
+            <div className="border border-border rounded-lg bg-background shadow-md max-h-36 overflow-y-auto">
+              {filtered.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => {
+                    onChange(m.id)
+                    setSearch('')
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+                >
+                  {m.full_name}
+                </button>
+              ))}
+            </div>
+          )}
+          {search && filtered.length === 0 && (
+            <p className="text-xs text-muted-foreground px-1">Nenhum membro encontrado.</p>
+          )}
+        </div>
+        {value && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => { onChange(''); setSearch('') }}
+            disabled={disabled}
+            className="self-start"
+          >
+            Remover
+          </Button>
+        )}
+      </div>
+      {value && (
+        <p className="text-xs text-muted-foreground">
+          Coordenador selecionado: <strong>{members.find((m) => m.id === value)?.full_name ?? value}</strong>
+        </p>
+      )}
+      <input type="hidden" name="coordinator_id" value={value} />
+    </div>
+  )
+}
+
+export function PastoralCrud({ initialPastorals, initialRoles, members }: PastoralCrudProps) {
   const [pastorals, setPastorals] = useState<Pastoral[]>(initialPastorals)
   const [roles, setRoles] = useState<Record<string, PastoralRole[]>>(initialRoles)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -33,17 +109,62 @@ export function PastoralCrud({ initialPastorals, initialRoles }: PastoralCrudPro
   const [showRoleForm, setShowRoleForm] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
+  // Estado do formulário de criação
+  const [createCoordinatorId, setCreateCoordinatorId] = useState('')
+  const [createPendingRoles, setCreatePendingRoles] = useState<string[]>([])
+  const [createRoleInput, setCreateRoleInput] = useState('')
+
+  // Estado do formulário de edição (coordenador)
+  const [editCoordinatorId, setEditCoordinatorId] = useState<string>('')
+
+  function resetCreateForm() {
+    setCreateCoordinatorId('')
+    setCreatePendingRoles([])
+    setCreateRoleInput('')
+  }
+
+  function handleAddPendingRole() {
+    const name = createRoleInput.trim()
+    if (!name) return
+    if (createPendingRoles.includes(name)) {
+      toast.error('Função já adicionada.')
+      return
+    }
+    setCreatePendingRoles((prev) => [...prev, name])
+    setCreateRoleInput('')
+  }
+
   function handleCreate(formData: FormData) {
+    // Injeta funções pendentes como campos múltiplos
+    createPendingRoles.forEach((r) => formData.append('role_name', r))
     startTransition(async () => {
       try {
         await createPastoralAction(formData)
         setShowCreateForm(false)
+        resetCreateForm()
         toast.success('Pastoral criada com sucesso.')
         const name = formData.get('name') as string
         const description = (formData.get('description') as string) || null
         const newId = crypto.randomUUID()
-        setPastorals((prev) => [...prev, { id: newId, parish_id: '', name, description, created_at: new Date().toISOString() }])
-        setRoles((prev) => ({ ...prev, [newId]: [] }))
+        setPastorals((prev) => [...prev, {
+          id: newId,
+          parish_id: '',
+          name,
+          description,
+          coordinator_id: createCoordinatorId || null,
+          coordinator_name: createCoordinatorId
+            ? (members.find((m) => m.id === createCoordinatorId)?.full_name ?? null)
+            : null,
+          created_at: new Date().toISOString(),
+        }])
+        const newRoles = createPendingRoles.map((r) => ({
+          id: crypto.randomUUID(),
+          parish_id: '',
+          pastoral_id: newId,
+          name: r,
+          created_at: new Date().toISOString(),
+        }))
+        setRoles((prev) => ({ ...prev, [newId]: newRoles }))
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Erro ao criar pastoral.')
       }
@@ -56,10 +177,22 @@ export function PastoralCrud({ initialPastorals, initialRoles }: PastoralCrudPro
       try {
         await updatePastoralAction(formData)
         setEditingId(null)
+        setEditCoordinatorId('')
         toast.success('Pastoral atualizada.')
         const name = formData.get('name') as string
         const description = (formData.get('description') as string) || null
-        setPastorals((prev) => prev.map((p) => (p.id === id ? { ...p, name, description } : p)))
+        const coordinator_id = (formData.get('coordinator_id') as string) || null
+        setPastorals((prev) => prev.map((p) =>
+          p.id === id ? {
+            ...p,
+            name,
+            description,
+            coordinator_id,
+            coordinator_name: coordinator_id
+              ? (members.find((m) => m.id === coordinator_id)?.full_name ?? null)
+              : null,
+          } : p
+        ))
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Erro ao atualizar pastoral.')
       }
@@ -137,19 +270,63 @@ export function PastoralCrud({ initialPastorals, initialRoles }: PastoralCrudPro
       {showCreateForm && (
         <form action={handleCreate} className="rounded-xl border border-border bg-card p-5 space-y-4 shadow-sm">
           <h2 className="font-semibold text-[#002045]">Nova Pastoral</h2>
-          <div className="space-y-2">
-            <Label htmlFor="new-name">Nome *</Label>
-            <Input id="new-name" name="name" placeholder="Ex: Pastoral da Juventude" required disabled={isPending} />
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="new-name">Nome *</Label>
+              <Input id="new-name" name="name" placeholder="Ex: Pastoral da Juventude" required disabled={isPending} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-description">Descrição</Label>
+              <Input id="new-description" name="description" placeholder="Breve descrição da pastoral" disabled={isPending} />
+            </div>
           </div>
+
+          {/* Coordenador */}
+          <CoordinatorSelect
+            members={members.filter((m) => m.is_active)}
+            value={createCoordinatorId}
+            onChange={setCreateCoordinatorId}
+            disabled={isPending}
+          />
+
+          {/* Funções — podem ser adicionadas na criação */}
           <div className="space-y-2">
-            <Label htmlFor="new-description">Descrição</Label>
-            <Input id="new-description" name="description" placeholder="Breve descrição da pastoral" disabled={isPending} />
+            <Label>Funções da pastoral</Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Nome da função (ex: Missal, Turíbulo)"
+                value={createRoleInput}
+                onChange={(e) => setCreateRoleInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddPendingRole() } }}
+                disabled={isPending}
+                className="h-8 text-sm"
+              />
+              <Button type="button" size="sm" variant="outline" onClick={handleAddPendingRole} disabled={isPending || !createRoleInput.trim()}>
+                Adicionar
+              </Button>
+            </div>
+            {createPendingRoles.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {createPendingRoles.map((r) => (
+                  <span key={r} className="flex items-center gap-1 bg-[#002045]/8 border border-[#002045]/20 rounded-full px-3 py-0.5 text-xs text-[#002045]">
+                    {r}
+                    <button
+                      type="button"
+                      onClick={() => setCreatePendingRoles((prev) => prev.filter((x) => x !== r))}
+                      className="hover:text-destructive ml-0.5"
+                    >×</button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
+
           <div className="flex gap-2 pt-1">
             <Button type="submit" className="bg-[#002045] text-white hover:bg-[#1a365d]" disabled={isPending}>
               {isPending ? 'Salvando...' : 'Criar Pastoral'}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)} disabled={isPending}>
+            <Button type="button" variant="outline" onClick={() => { setShowCreateForm(false); resetCreateForm() }} disabled={isPending}>
               Cancelar
             </Button>
           </div>
@@ -184,23 +361,31 @@ export function PastoralCrud({ initialPastorals, initialRoles }: PastoralCrudPro
               </div>
             ) : (
               <div key={pastoral.id} className="rounded-xl border border-border bg-card shadow-sm">
-                {/* Cabeçalho do card */}
+                {/* Formulário de edição */}
                 {editingId === pastoral.id ? (
                   <form action={handleUpdate} className="p-5 space-y-3">
                     <input type="hidden" name="id" value={pastoral.id} />
-                    <div className="space-y-1.5">
-                      <Label>Nome *</Label>
-                      <Input name="name" defaultValue={pastoral.name} required disabled={isPending} />
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label>Nome *</Label>
+                        <Input name="name" defaultValue={pastoral.name} required disabled={isPending} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Descrição</Label>
+                        <Input name="description" defaultValue={pastoral.description ?? ''} disabled={isPending} />
+                      </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <Label>Descrição</Label>
-                      <Input name="description" defaultValue={pastoral.description ?? ''} disabled={isPending} />
-                    </div>
+                    <CoordinatorSelect
+                      members={members.filter((m) => m.is_active)}
+                      value={editCoordinatorId}
+                      onChange={setEditCoordinatorId}
+                      disabled={isPending}
+                    />
                     <div className="flex gap-2">
                       <Button type="submit" size="sm" className="bg-[#002045] text-white hover:bg-[#1a365d]" disabled={isPending}>
                         {isPending ? 'Salvando...' : 'Salvar'}
                       </Button>
-                      <Button type="button" size="sm" variant="outline" onClick={() => setEditingId(null)} disabled={isPending}>
+                      <Button type="button" size="sm" variant="outline" onClick={() => { setEditingId(null); setEditCoordinatorId('') }} disabled={isPending}>
                         Cancelar
                       </Button>
                     </div>
@@ -212,9 +397,16 @@ export function PastoralCrud({ initialPastorals, initialRoles }: PastoralCrudPro
                       {pastoral.description && (
                         <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">{pastoral.description}</p>
                       )}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {(roles[pastoral.id] ?? []).length} função(ões) cadastrada(s)
-                      </p>
+                      <div className="flex flex-wrap gap-x-3 mt-1">
+                        {pastoral.coordinator_name && (
+                          <p className="text-xs text-muted-foreground">
+                            Coordenador: <span className="font-medium text-[#002045]">{pastoral.coordinator_name}</span>
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {(roles[pastoral.id] ?? []).length} função(ões)
+                        </p>
+                      </div>
                     </div>
                     <div className="flex gap-1.5 flex-shrink-0 flex-wrap justify-end">
                       <Button
@@ -224,7 +416,16 @@ export function PastoralCrud({ initialPastorals, initialRoles }: PastoralCrudPro
                       >
                         {expandedId === pastoral.id ? 'Fechar' : 'Funções'}
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => { setEditingId(pastoral.id); setDeletingId(null); setExpandedId(null) }}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingId(pastoral.id)
+                          setEditCoordinatorId(pastoral.coordinator_id ?? '')
+                          setDeletingId(null)
+                          setExpandedId(null)
+                        }}
+                      >
                         Editar
                       </Button>
                       <Button size="sm" variant="destructive" onClick={() => { setDeletingId(pastoral.id); setEditingId(null) }}>

@@ -19,11 +19,12 @@ export async function createCelebrationRequirementAction(formData: FormData) {
   const user = await requireAdminOrCoordinator()
   const celebration_id = formData.get('celebration_id') as string
   const pastoral_id = formData.get('pastoral_id') as string
-  const pastoral_role_id = formData.get('pastoral_role_id') as string
+  // pastoral_role_id é opcional: pastoral pode ser adicionada sem função específica
+  const pastoral_role_id = (formData.get('pastoral_role_id') as string) || null
   const quantity = parseInt(formData.get('quantity') as string, 10) || 1
 
-  if (!celebration_id || !pastoral_id || !pastoral_role_id) {
-    throw new Error('Pastoral, função e celebração são obrigatórios.')
+  if (!celebration_id || !pastoral_id) {
+    throw new Error('Pastoral e celebração são obrigatórios.')
   }
   if (quantity < 1 || quantity > 99) throw new Error('Quantidade deve ser entre 1 e 99.')
 

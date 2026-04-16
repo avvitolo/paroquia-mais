@@ -8,64 +8,117 @@ export type Pastoral = {
   parish_id: string
   name: string
   description: string | null
+  coordinator_id: string | null
+  coordinator_name: string | null // join do membro coordenador
   created_at: string
 }
 
-// Lista todas as pastorais da paróquia autenticada
+// Lista todas as pastorais da paróquia autenticada, incluindo nome do coordenador
 export async function getPastorals(): Promise<Pastoral[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('pastorals')
-    .select('*')
+    .select('*, coordinator:members!coordinator_id(full_name)')
     .order('name')
 
   if (error) {
     console.error('[getPastorals] error:', error.message)
     return []
   }
-  return data as Pastoral[]
+
+  return (data ?? []).map((row: Record<string, unknown>) => ({
+    id: row.id as string,
+    parish_id: row.parish_id as string,
+    name: row.name as string,
+    description: (row.description as string) ?? null,
+    coordinator_id: (row.coordinator_id as string) ?? null,
+    coordinator_name: row.coordinator
+      ? ((row.coordinator as { full_name: string }).full_name ?? null)
+      : null,
+    created_at: row.created_at as string,
+  }))
 }
 
 // Cria uma nova pastoral para a paróquia do usuário autenticado
 export async function createPastoral(
   parishId: string,
   name: string,
-  description: string | null
+  description: string | null,
+  coordinatorId: string | null
 ): Promise<Pastoral> {
-  // Usa admin client para garantir que a inserção funcione independente do JWT
   const admin = createAdminClient()
   const { data, error } = await admin
     .from('pastorals')
-    .insert({ parish_id: parishId, name, description })
-    .select()
+    .insert({ parish_id: parishId, name, description, coordinator_id: coordinatorId })
+    .select('*, coordinator:members!coordinator_id(full_name)')
     .single()
 
   if (error) throw new Error('Falha ao criar pastoral: ' + error.message)
-  return data as Pastoral
+
+  const row = data as Record<string, unknown>
+  return {
+    id: row.id as string,
+    parish_id: row.parish_id as string,
+    name: row.name as string,
+    description: (row.description as string) ?? null,
+    coordinator_id: (row.coordinator_id as string) ?? null,
+    coordinator_name: row.coordinator
+      ? ((row.coordinator as { full_name: string }).full_name ?? null)
+      : null,
+    created_at: row.created_at as string,
+  }
 }
 
-// Atualiza nome e descrição de uma pastoral (verifica parish_id para segurança)
+// Atualiza nome, descrição e coordenador de uma pastoral
 export async function updatePastoral(
   id: string,
   parishId: string,
   name: string,
-  description: string | null
+  description: string | null,
+  coordinatorId: string | null
 ): Promise<Pastoral> {
   const admin = createAdminClient()
   const { data, error } = await admin
     .from('pastorals')
-    .update({ name, description })
+    .update({ name, description, coordinator_id: coordinatorId })
     .eq('id', id)
     .eq('parish_id', parishId)
-    .select()
+    .select('*, coordinator:members!coordinator_id(full_name)')
     .single()
 
   if (error) throw new Error('Falha ao atualizar pastoral: ' + error.message)
-  return data as Pastoral
+
+  const row = data as Record<string, unknown>
+  return {
+    id: row.id as string,
+    parish_id: row.parish_id as string,
+    name: row.name as string,
+    description: (row.description as string) ?? null,
+    coordinator_id: (row.coordinator_id as string) ?? null,
+    coordinator_name: row.coordinator
+      ? ((row.coordinator as { full_name: string }).full_name ?? null)
+      : null,
+    created_at: row.created_at as string,
+  }
+}
+
+// Atualiza apenas o coordenador de uma pastoral (usado ao salvar membro como coordenador)
+export async function updatePastoralCoordinator(
+  pastoralId: string,
+  parishId: string,
+  coordinatorId: string | null
+): Promise<void> {
+  const admin = createAdminClient()
+  const { error } = await admin
+    .from('pastorals')
+    .update({ coordinator_id: coordinatorId })
+    .eq('id', pastoralId)
+    .eq('parish_id', parishId)
+
+  if (error) throw new Error('Falha ao atualizar coordenador da pastoral: ' + error.message)
 }
 
 // Conta pastorais de uma paróquia — usado para enforcement de limites de plano (Story 6.2)
-// Retorna 0 em caso de erro (fail-open: não bloquear criação por falha de contagem)
 export async function countPastorals(parishId: string): Promise<number> {
   try {
     const admin = createAdminClient()

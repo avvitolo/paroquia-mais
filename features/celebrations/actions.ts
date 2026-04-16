@@ -16,7 +16,7 @@ async function requireAdminOrCoordinator() {
   return user
 }
 
-export async function createCelebrationAction(formData: FormData) {
+export async function createCelebrationAction(formData: FormData): Promise<{ id: string }> {
   const user = await requireAdminOrCoordinator()
   const title = (formData.get('title') as string)?.trim()
   const date = formData.get('date') as string
@@ -26,8 +26,33 @@ export async function createCelebrationAction(formData: FormData) {
 
   if (!title || !date || !time || !type) throw new Error('Preencha todos os campos obrigatórios.')
 
-  await createCelebration(user.parish_id, { title, date, time, type, notes })
+  // Requisitos pré-cadastrados na criação: serializado como JSON no campo requirements_json
+  const requirementsJson = formData.get('requirements_json') as string
+  let pendingRequirements: Array<{ pastoral_id: string; pastoral_role_id: string | null; quantity: number }> = []
+  if (requirementsJson) {
+    try {
+      pendingRequirements = JSON.parse(requirementsJson)
+    } catch { /* ignora JSON inválido */ }
+  }
+
+  const celebration = await createCelebration(user.parish_id, { title, date, time, type, notes })
+
+  // Cria requisitos que foram adicionados durante a criação da celebração
+  if (pendingRequirements.length > 0) {
+    const { createCelebrationRequirement } = await import('@/lib/mcp/celebration-requirement.mcp')
+    for (const req of pendingRequirements) {
+      await createCelebrationRequirement(
+        user.parish_id,
+        celebration.id,
+        req.pastoral_id,
+        req.pastoral_role_id,
+        req.quantity
+      )
+    }
+  }
+
   revalidatePath('/celebrations')
+  return { id: celebration.id }
 }
 
 export async function updateCelebrationAction(formData: FormData) {

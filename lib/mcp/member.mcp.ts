@@ -9,7 +9,7 @@ export type Member = {
   full_name: string
   email: string | null
   phone: string | null
-  pastoral_id: string | null
+  pastoral_id: string | null // legado; usar member_pastorals para multi-pastoral
   is_active: boolean
   created_at: string
 }
@@ -20,7 +20,16 @@ export type MemberAvailability = {
   parish_id: string
   start_date: string
   end_date: string
+  availability_type: 'single_date' | 'period' | 'weekend' | 'weekday'
   reason: string | null
+  created_at: string
+}
+
+export type MemberPastoral = {
+  id: string
+  parish_id: string
+  member_id: string
+  pastoral_id: string
   created_at: string
 }
 
@@ -84,7 +93,6 @@ export async function updateMember(
 }
 
 // Conta membros ativos de uma paróquia — usado para enforcement de limites de plano (Story 6.2)
-// Retorna 0 em caso de erro (fail-open: não bloquear criação por falha de contagem)
 export async function countActiveMembers(parishId: string): Promise<number> {
   try {
     const admin = createAdminClient()
@@ -106,6 +114,72 @@ export async function countActiveMembers(parishId: string): Promise<number> {
   }
 }
 
+// --- Pastorais do Membro (N:N) ---
+
+// Retorna todas as pastorais de um membro
+export async function getMemberPastorals(memberId: string): Promise<MemberPastoral[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('member_pastorals')
+    .select('*')
+    .eq('member_id', memberId)
+  if (error) return []
+  return data as MemberPastoral[]
+}
+
+// Retorna mapa memberId -> pastoral_ids para lista de membros
+export async function getMemberPastoralsForParish(
+  parishId: string
+): Promise<Record<string, string[]>> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('member_pastorals')
+    .select('member_id, pastoral_id')
+    .eq('parish_id', parishId)
+
+  if (error) return {}
+
+  const map: Record<string, string[]> = {}
+  for (const row of data ?? []) {
+    const r = row as { member_id: string; pastoral_id: string }
+    if (!map[r.member_id]) map[r.member_id] = []
+    map[r.member_id].push(r.pastoral_id)
+  }
+  return map
+}
+
+// Adiciona membro a uma pastoral
+export async function addMemberPastoral(
+  parishId: string,
+  memberId: string,
+  pastoralId: string
+): Promise<MemberPastoral> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('member_pastorals')
+    .insert({ parish_id: parishId, member_id: memberId, pastoral_id: pastoralId })
+    .select()
+    .single()
+  if (error) throw new Error('Falha ao adicionar pastoral ao membro: ' + error.message)
+  return data as MemberPastoral
+}
+
+// Remove membro de uma pastoral
+export async function removeMemberPastoral(
+  memberId: string,
+  pastoralId: string,
+  parishId: string
+): Promise<void> {
+  const admin = createAdminClient()
+  const { error } = await admin
+    .from('member_pastorals')
+    .delete()
+    .eq('member_id', memberId)
+    .eq('pastoral_id', pastoralId)
+    .eq('parish_id', parishId)
+  if (error) throw new Error('Falha ao remover pastoral do membro: ' + error.message)
+}
+
 // --- Indisponibilidades ---
 
 export async function getAvailabilities(memberId: string): Promise<MemberAvailability[]> {
@@ -124,12 +198,20 @@ export async function createAvailability(
   memberId: string,
   startDate: string,
   endDate: string,
+  availabilityType: 'single_date' | 'period' | 'weekend' | 'weekday',
   reason: string | null
 ): Promise<MemberAvailability> {
   const admin = createAdminClient()
   const { data, error } = await admin
     .from('member_availability')
-    .insert({ parish_id: parishId, member_id: memberId, start_date: startDate, end_date: endDate, reason })
+    .insert({
+      parish_id: parishId,
+      member_id: memberId,
+      start_date: startDate,
+      end_date: endDate,
+      availability_type: availabilityType,
+      reason,
+    })
     .select()
     .single()
   if (error) throw new Error('Falha ao registrar indisponibilidade: ' + error.message)

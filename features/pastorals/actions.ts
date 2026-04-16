@@ -9,6 +9,7 @@ import {
   deletePastoral,
   countPastorals,
 } from '@/lib/mcp/pastoral.mcp'
+import { createPastoralRole } from '@/lib/mcp/pastoral-role.mcp'
 import { getSubscriptionByParishId } from '@/lib/mcp/parish.mcp'
 import { getPlanLimits } from '@/lib/plan-limits'
 import { logOperation } from '@/lib/logger'
@@ -25,6 +26,9 @@ export async function createPastoralAction(formData: FormData) {
   const user = await requireAdmin()
   const name = (formData.get('name') as string)?.trim()
   const description = (formData.get('description') as string)?.trim() || null
+  const coordinator_id = (formData.get('coordinator_id') as string)?.trim() || null
+  // Funções criadas na mesma ação (array de nomes)
+  const roleNames = formData.getAll('role_name').map((v) => (v as string).trim()).filter(Boolean)
 
   if (!name) throw new Error('Nome da pastoral é obrigatório.')
 
@@ -41,9 +45,17 @@ export async function createPastoralAction(formData: FormData) {
   }
 
   try {
-    await createPastoral(user.parish_id, name, description)
+    const pastoral = await createPastoral(user.parish_id, name, description, coordinator_id)
+
+    // Cria funções definidas na criação da pastoral
+    for (const roleName of roleNames) {
+      await createPastoralRole(user.parish_id, pastoral.id, roleName)
+    }
+
     revalidatePath('/pastorals')
     logOperation({ operation: 'createPastoral', userId: user.id, parishId: user.parish_id, status: 'success' })
+
+    return { id: pastoral.id }
   } catch (e) {
     logOperation({ operation: 'createPastoral', userId: user.id, parishId: user.parish_id, status: 'failure', error: e })
     throw e
@@ -55,11 +67,12 @@ export async function updatePastoralAction(formData: FormData) {
   const id = formData.get('id') as string
   const name = (formData.get('name') as string)?.trim()
   const description = (formData.get('description') as string)?.trim() || null
+  const coordinator_id = (formData.get('coordinator_id') as string)?.trim() || null
 
   if (!id) throw new Error('ID da pastoral é obrigatório.')
   if (!name) throw new Error('Nome da pastoral é obrigatório.')
 
-  await updatePastoral(id, user.parish_id, name, description)
+  await updatePastoral(id, user.parish_id, name, description, coordinator_id)
   revalidatePath('/pastorals')
 }
 
