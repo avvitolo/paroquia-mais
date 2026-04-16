@@ -82,7 +82,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Não tem conta?{' '}
-          <a href="/register" className="text-[#002045] font-medium hover:underline">
+          <a href="/signup" className="text-[#002045] font-medium hover:underline">
             Cadastrar paróquia
           </a>
         </p>

@@ -47,14 +47,14 @@ export async function signUp(
     parish_id: parish.id,
     full_name: fullName,
     email,
-    role: 'admin',
+    role: 'admin_sistema',
   })
 
   if (userError) throw new Error('Falha ao criar usuário no banco: ' + userError.message)
 
   // 4. Atualiza app_metadata com parish_id e role (necessário para JWT e RLS policies)
   await admin.auth.admin.updateUserById(authData.user.id, {
-    app_metadata: { parish_id: parish.id, role: 'admin' },
+    app_metadata: { parish_id: parish.id, role: 'admin_sistema' },
   })
 
   // 5. Se a confirmação de email está desabilitada, authData.session já existe —
