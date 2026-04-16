@@ -9,24 +9,32 @@ import { hasRole, type AppUser } from '@/lib/mcp/user.types'
 
 // Mapa de rótulos para cada papel
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Administrador',
-  coordinator: 'Coordenador',
-  member: 'Membro',
+  admin_sistema:   'Admin Sistema',
+  admin_paroquial: 'Admin Paroquial',
+  paroco:          'Pároco',
+  secretario:      'Secretário',
+  coordenador:     'Coordenador',
+  membro:          'Membro',
 }
 
 type NavItem = {
   href: string
   label: string
-  roles: Array<'admin' | 'coordinator' | 'member'>
+  roles: Array<'admin_sistema' | 'admin_paroquial' | 'paroco' | 'secretario' | 'coordenador' | 'membro'>
 }
 
+// Atalhos para grupos de acesso reutilizados nas rotas
+const GESTORES = ['admin_sistema', 'admin_paroquial', 'paroco', 'secretario'] as const
+const GESTORES_E_COORD = [...GESTORES, 'coordenador'] as const
+const TODOS = [...GESTORES_E_COORD, 'membro'] as const
+
 const NAV_ITEMS: NavItem[] = [
-  { href: '/dashboard', label: 'Dashboard', roles: ['admin', 'coordinator', 'member'] },
-  { href: '/pastorals', label: 'Pastorais', roles: ['admin'] },
-  { href: '/members', label: 'Membros', roles: ['admin', 'coordinator'] },
-  { href: '/celebrations', label: 'Celebrações', roles: ['admin', 'coordinator'] },
-  { href: '/schedules', label: 'Escalas', roles: ['admin', 'coordinator', 'member'] },
-  { href: '/settings', label: 'Configurações', roles: ['admin'] },
+  { href: '/dashboard',    label: 'Dashboard',     roles: [...TODOS] },
+  { href: '/pastorals',    label: 'Pastorais',      roles: [...GESTORES] },
+  { href: '/members',      label: 'Membros',        roles: [...GESTORES_E_COORD] },
+  { href: '/celebrations', label: 'Celebrações',    roles: [...GESTORES_E_COORD] },
+  { href: '/schedules',    label: 'Escalas',        roles: [...TODOS] },
+  { href: '/settings',     label: 'Configurações',  roles: [...GESTORES] },
 ]
 
 interface SidebarProps {

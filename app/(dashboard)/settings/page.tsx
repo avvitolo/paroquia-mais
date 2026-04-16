@@ -9,9 +9,12 @@ export default async function SettingsPage() {
   if (!user) redirect('/login')
 
   const ROLE_LABELS: Record<string, string> = {
-    admin: 'Administrador',
-    coordinator: 'Coordenador',
-    member: 'Membro',
+    admin_sistema:   'Admin Sistema',
+    admin_paroquial: 'Admin Paroquial',
+    paroco:          'Pároco',
+    secretario:      'Secretário',
+    coordenador:     'Coordenador',
+    membro:          'Membro',
   }
 
   return (

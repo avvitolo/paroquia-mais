@@ -1,6 +1,12 @@
 // Tipos e funções puras de usuário — sem dependências de servidor
 // Pode ser importado tanto em Server Components quanto em Client Components
-export type AppRole = 'admin' | 'coordinator' | 'member'
+export type AppRole =
+  | 'admin_sistema'
+  | 'admin_paroquial'
+  | 'paroco'
+  | 'secretario'
+  | 'coordenador'
+  | 'membro'
 
 export type AppUser = {
   id: string
