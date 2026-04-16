@@ -5,6 +5,11 @@ import path from 'path'
 // Carrega variáveis do .env.local para os testes
 dotenv.config({ path: path.resolve(__dirname, '.env.local') })
 
+// PLAYWRIGHT_BASE_URL deve apontar para o servidor já em execução.
+// Localmente: inicie `npm run dev` em outro terminal antes de rodar os testes.
+// Em CI / Vercel preview: defina PLAYWRIGHT_BASE_URL com a URL do ambiente.
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false,     // Supabase free tier tem rate limits — serial é mais seguro
@@ -14,7 +19,7 @@ export default defineConfig({
   reporter: [['html', { outputFolder: 'tests/reports' }], ['list']],
 
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
@@ -31,10 +36,8 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  // webServer removido: o Playwright no Windows não encerra corretamente a
+  // árvore de processos do `npm run dev`, acumulando instâncias Node.js a
+  // cada execução e travando a máquina. Suba o servidor manualmente antes
+  // de rodar os testes (`npm run dev` em outro terminal).
 })
