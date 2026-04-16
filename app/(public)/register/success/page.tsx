@@ -18,11 +18,11 @@ export default function RegisterSuccessPage() {
         </div>
 
         <h1 className="font-heading text-2xl font-bold text-[#002045] mb-3">
-          Paróquia registrada!
+          Trial ativado!
         </h1>
 
         <p className="text-muted-foreground mb-6">
-          Verifique seu e-mail para acessar o sistema. Você receberá um link de acesso em breve.
+          Sua paróquia tem acesso total por 30 dias gratuitamente. Verifique seu e-mail para acessar o sistema.
         </p>
 
         <a

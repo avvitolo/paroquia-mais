@@ -25,7 +25,17 @@ export async function createCheckoutSession(data: {
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     customer_email: data.email,
+    // Não exige cartão quando o total devido hoje é R$0 (trial ativo)
+    payment_method_collection: 'if_required',
     line_items: [{ price: priceId, quantity: 1 }],
+    subscription_data: data.plan === 'basico'
+      ? {
+          trial_period_days: 30,
+          trial_settings: {
+            end_behavior: { missing_payment_method: 'cancel' },
+          },
+        }
+      : undefined,
     metadata: {
       parish_name: data.parishName,
       admin_email: data.email,

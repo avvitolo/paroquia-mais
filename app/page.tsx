@@ -160,7 +160,7 @@ export default function LandingPage() {
               {
                 step: '01',
                 title: 'Cadastre sua paróquia',
-                desc: 'Escolha o plano, pague com segurança via Stripe e acesse o painel imediatamente.',
+                desc: 'Ative o trial gratuito de 30 dias e acesse o painel imediatamente, sem informar cartão.',
               },
               {
                 step: '02',
@@ -201,12 +201,11 @@ export default function LandingPage() {
             {/* Plano Teste */}
             <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 flex flex-col">
               <div className="mb-6">
-                <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Plano Teste</span>
+                <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Trial</span>
                 <div className="flex items-end gap-1 mt-2">
-                  <span className="font-heading text-4xl font-bold text-[#002045]">R$&nbsp;49</span>
-                  <span className="text-muted-foreground mb-1">/mês</span>
+                  <span className="font-heading text-4xl font-bold text-[#002045]">30 dias</span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">Acesso total ao sistema</p>
+                <p className="text-sm text-muted-foreground mt-2">Grátis — sem cobrança agora</p>
               </div>
 
               <ul className="space-y-3 flex-1 mb-8">
@@ -229,7 +228,7 @@ export default function LandingPage() {
                 href="/register?plan=basico"
                 className="w-full inline-flex items-center justify-center border-2 border-[#002045] text-[#002045] font-semibold rounded-xl px-6 py-3 hover:bg-[#002045] hover:text-white transition-colors"
               >
-                Começar com Plano Teste
+                Iniciar trial gratuito
               </Link>
             </div>
 

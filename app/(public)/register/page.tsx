@@ -105,8 +105,8 @@ function RegisterForm() {
                   disabled={isPending}
                   className="sr-only"
                 />
-                <span className="font-semibold text-[#002045]">Plano Teste</span>
-                <span className="text-xs text-muted-foreground mt-1">Acesso total ao sistema</span>
+                <span className="font-semibold text-[#002045]">Trial — 30 dias</span>
+                <span className="text-xs text-muted-foreground mt-1">Acesso total, sem cobrança agora</span>
               </label>
 
               {/* Plano Pro */}
@@ -137,7 +137,11 @@ function RegisterForm() {
             className="w-full bg-[#002045] text-white hover:bg-[#1a365d]"
             disabled={isPending}
           >
-            {isPending ? 'Redirecionando...' : 'Continuar para pagamento'}
+            {isPending
+            ? 'Redirecionando...'
+            : plan === 'basico'
+              ? 'Iniciar trial gratuito de 30 dias'
+              : 'Continuar para pagamento'}
           </Button>
         </form>
 
