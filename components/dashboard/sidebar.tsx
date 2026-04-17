@@ -9,10 +9,10 @@ import { hasRole, type AppUser } from '@/lib/mcp/user.types'
 
 // Mapa de rótulos para cada papel
 const ROLE_LABELS: Record<string, string> = {
-  admin_sistema:   'Admin Sistema',
-  admin_paroquial: 'Admin Paroquial',
+  admin_sistema:   'Administrador',
+  admin_paroquial: 'Administrador Paroquial',
   paroco:          'Pároco',
-  secretario:      'Secretário',
+  secretario:      'Secretário Paroquial',
   coordenador:     'Coordenador',
   membro:          'Membro',
 }

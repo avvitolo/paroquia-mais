@@ -76,30 +76,15 @@ export async function updatePastoral(
   name: string,
   description: string | null,
   coordinatorId: string | null
-): Promise<Pastoral> {
+): Promise<void> {
   const admin = createAdminClient()
-  const { data, error } = await admin
+  const { error } = await admin
     .from('pastorals')
     .update({ name, description, coordinator_id: coordinatorId })
     .eq('id', id)
     .eq('parish_id', parishId)
-    .select('*, coordinator:members!coordinator_id(full_name)')
-    .single()
 
   if (error) throw new Error('Falha ao atualizar pastoral: ' + error.message)
-
-  const row = data as Record<string, unknown>
-  return {
-    id: row.id as string,
-    parish_id: row.parish_id as string,
-    name: row.name as string,
-    description: (row.description as string) ?? null,
-    coordinator_id: (row.coordinator_id as string) ?? null,
-    coordinator_name: row.coordinator
-      ? ((row.coordinator as { full_name: string }).full_name ?? null)
-      : null,
-    created_at: row.created_at as string,
-  }
 }
 
 // Atualiza apenas o coordenador de uma pastoral (usado ao salvar membro como coordenador)

@@ -2,6 +2,7 @@
 
 // Componente client para CRUD de pastorais + funções + coordenador
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -100,6 +101,7 @@ function CoordinatorSelect({
 }
 
 export function PastoralCrud({ initialPastorals, initialRoles, members }: PastoralCrudProps) {
+  const router = useRouter()
   const [pastorals, setPastorals] = useState<Pastoral[]>(initialPastorals)
   const [roles, setRoles] = useState<Record<string, PastoralRole[]>>(initialRoles)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -173,15 +175,15 @@ export function PastoralCrud({ initialPastorals, initialRoles, members }: Pastor
 
   function handleUpdate(formData: FormData) {
     const id = formData.get('id') as string
+    const name = formData.get('name') as string
+    const description = (formData.get('description') as string) || null
+    const coordinator_id = (formData.get('coordinator_id') as string) || null
     startTransition(async () => {
       try {
         await updatePastoralAction(formData)
         setEditingId(null)
         setEditCoordinatorId('')
         toast.success('Pastoral atualizada.')
-        const name = formData.get('name') as string
-        const description = (formData.get('description') as string) || null
-        const coordinator_id = (formData.get('coordinator_id') as string) || null
         setPastorals((prev) => prev.map((p) =>
           p.id === id ? {
             ...p,
@@ -193,6 +195,7 @@ export function PastoralCrud({ initialPastorals, initialRoles, members }: Pastor
               : null,
           } : p
         ))
+        router.refresh()
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Erro ao atualizar pastoral.')
       }
@@ -274,11 +277,11 @@ export function PastoralCrud({ initialPastorals, initialRoles, members }: Pastor
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="new-name">Nome *</Label>
-              <Input id="new-name" name="name" placeholder="Ex: Pastoral da Juventude" required disabled={isPending} />
+              <Input id="new-name" name="name" placeholder="Nome da pastoral" required disabled={isPending} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="new-description">Descrição</Label>
-              <Input id="new-description" name="description" placeholder="Breve descrição da pastoral" disabled={isPending} />
+              <Input id="new-description" name="description" placeholder="Descrição (opcional)" disabled={isPending} />
             </div>
           </div>
 
@@ -295,7 +298,7 @@ export function PastoralCrud({ initialPastorals, initialRoles, members }: Pastor
             <Label>Funções da pastoral</Label>
             <div className="flex gap-2">
               <Input
-                placeholder="Nome da função (ex: Missal, Turíbulo)"
+                placeholder="Nome da função"
                 value={createRoleInput}
                 onChange={(e) => setCreateRoleInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddPendingRole() } }}
@@ -452,7 +455,7 @@ export function PastoralCrud({ initialPastorals, initialRoles, members }: Pastor
                         <input type="hidden" name="pastoral_id" value={pastoral.id} />
                         <div className="flex-1 space-y-1">
                           <Label className="text-xs">Nome da função *</Label>
-                          <Input name="name" placeholder="Ex: Missal, Turíbulo, Cantor" required disabled={isPending} className="h-7 text-xs" />
+                          <Input name="name" placeholder="Nome da função" required disabled={isPending} className="h-7 text-xs" />
                         </div>
                         <Button size="sm" type="submit" className="bg-[#002045] text-white hover:bg-[#1a365d]" disabled={isPending}>
                           {isPending ? '...' : 'Criar'}

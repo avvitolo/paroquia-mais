@@ -7,6 +7,7 @@ import {
   updateMember,
   countActiveMembers,
   createAvailability,
+  updateAvailability,
   deleteAvailability,
   deleteMember,
   addMemberPastoral,
@@ -151,6 +152,26 @@ export async function createAvailabilityAction(formData: FormData) {
     : 'single_date'
 
   await createAvailability(user.parish_id, member_id, start_date, end_date, safeType, reason)
+  revalidatePath('/members')
+}
+
+export async function updateAvailabilityAction(formData: FormData) {
+  const user = await requireAdminOrCoordinator()
+  const id = formData.get('id') as string
+  const availability_type = (formData.get('availability_type') as string) || 'single_date'
+  const start_date = formData.get('start_date') as string
+  const end_date = formData.get('end_date') as string
+  const reason = (formData.get('reason') as string)?.trim() || null
+
+  if (!id || !start_date || !end_date) throw new Error('Dados inválidos.')
+  if (end_date < start_date) throw new Error('Data final deve ser igual ou posterior à inicial.')
+
+  const validTypes = ['single_date', 'period', 'weekend', 'weekday']
+  const safeType = validTypes.includes(availability_type)
+    ? (availability_type as 'single_date' | 'period' | 'weekend' | 'weekday')
+    : 'single_date'
+
+  await updateAvailability(id, user.parish_id, start_date, end_date, safeType, reason)
   revalidatePath('/members')
 }
 

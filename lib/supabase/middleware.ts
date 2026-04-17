@@ -19,9 +19,12 @@ export async function updateSession(request: NextRequest) {
             request.cookies.set(name, value)
           )
           supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // Remove maxAge/expires para que o cookie seja de sessão (expira ao fechar o browser)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { maxAge, expires, ...sessionOptions } = options as Record<string, unknown>
+            supabaseResponse.cookies.set(name, value, sessionOptions as Parameters<typeof supabaseResponse.cookies.set>[2])
+          })
         },
       },
     }

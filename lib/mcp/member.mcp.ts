@@ -218,6 +218,26 @@ export async function createAvailability(
   return data as MemberAvailability
 }
 
+export async function updateAvailability(
+  id: string,
+  parishId: string,
+  startDate: string,
+  endDate: string,
+  availabilityType: 'single_date' | 'period' | 'weekend' | 'weekday',
+  reason: string | null
+): Promise<MemberAvailability> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('member_availability')
+    .update({ start_date: startDate, end_date: endDate, availability_type: availabilityType, reason })
+    .eq('id', id)
+    .eq('parish_id', parishId)
+    .select()
+    .single()
+  if (error) throw new Error('Falha ao atualizar indisponibilidade: ' + error.message)
+  return data as MemberAvailability
+}
+
 export async function deleteAvailability(id: string, parishId: string): Promise<void> {
   const admin = createAdminClient()
   const { error } = await admin
